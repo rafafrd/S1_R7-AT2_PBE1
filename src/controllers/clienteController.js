@@ -9,8 +9,8 @@ const controllerFunc = {
    */
   inserirCliente: async (req, res) => {
     try {
-      const { nome, cpf, email, cep } = req.body;
-      if (!nome || !cpf || isNaN(cpf) || !email || !cep || isNaN(cep)) {
+      const { nome, cpf, email } = req.body;
+      if (!nome || !cpf || isNaN(cpf) || !email) {
         return res
           .status(400)
           .json({ message: "Verifique os dados enviados e tente novamente" });
@@ -22,7 +22,14 @@ const controllerFunc = {
           .status(409)
           .json({ message: "Conflito: CPF já cadastrado." });
       }
-      const resultado = await clienteModel.insert(nome, cpf, email, cep);
+      const emailExistente = await clienteModel.selectByEmail(email);
+      if (emailExistente.length > 0) {
+        // Retorna o status 409 (Conflict)
+        return res
+          .status(409)
+          .json({ message: "Conflito: Email já cadastrado." });
+      }
+      const resultado = await clienteModel.insert(nome, cpf, email);
       res
         .status(201)
         .json({ message: "Registro incluído com sucesso", data: resultado });
