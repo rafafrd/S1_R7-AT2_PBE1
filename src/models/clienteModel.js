@@ -1,6 +1,12 @@
 const { pool } = require("../config/db");
 
 const clienteModel = {
+  // Busca de todos os clientes;
+  selectAll: async () => {
+    const sql = "SELECT * FROM clientes;";
+    const [rows] = await pool.query(sql);
+    return rows;
+  },
   insert: async (pNomeCliente, pCpf, pEmail_cliente, pCep) => {
     const sql = "INSERT INTO clientes(nome, cpf, email) VALUES(?,?,?,?);";
     const values = [pNomeCliente, pCpf, pEmail_cliente, pCep];
