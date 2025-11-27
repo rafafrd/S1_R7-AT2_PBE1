@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`enderecos` (
 CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`pedido` (
     `id_pedido` INT NOT NULL AUTO_INCREMENT,
     `id_cliente` INT NOT NULL,
-    `data_pedido` TIMESTAMP NOT NULL,
+    `data_pedido` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `peso_carga` INT NOT NULL,
     PRIMARY KEY (`id_pedido`),
     INDEX `FK_pedidos_clientes_idx` (`id_cliente` ASC) VISIBLE,
