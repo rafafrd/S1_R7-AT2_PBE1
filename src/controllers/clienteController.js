@@ -1,7 +1,30 @@
 const { clienteModel } = require("../models/clienteModel");
 const { buscaCep } = require("../utils/buscaCep");
 
-const controllerFunc = {
+const clienteController = {
+  /**
+   * Busca e retorna todos os clientes cadastrados.
+   * Rota GET /clientes
+   * @async
+   * @function selecionaTodos
+   * @param {Request} req Objeto da requisição HTTP
+   * @param {Response} res Objeto da resposta HTTP
+   * @returns {Promise<Response>} Retorna um JSON com a lista de clientes ou uma mensagem.
+   */
+  selecionaTodos: async (req, res) => {
+    try {
+      const resultado = await clienteModel.selectAll();
+      if (resultado.length === 0) {
+        return res
+          .status(200)
+          .json({ message: "A consulta não retornou resultados" });
+      }
+      res.status(200).json({ data: resultado });
+    } catch (error) {
+      console.error(`Erro ao executar: ${error}`);
+      res.status(500).json({ message: "Ocorreu um erro no servidor" });
+    }
+  },
   /**
    *
    * @param {*} req
@@ -10,8 +33,8 @@ const controllerFunc = {
    */
   inserirCliente: async (req, res) => {
     try {
-      const { nome, cpf, email, cep } = req.body;
-      if (!nome || !cpf || isNaN(cpf) || !email || !cep || isNaN(cep)) {
+      const { nome, cpf, email } = req.body;
+      if (!nome || !cpf || isNaN(cpf) || !email) {
         return res
           .status(400)
           .json({ message: "Verifique os dados enviados e tente novamente" });
@@ -23,7 +46,14 @@ const controllerFunc = {
           .status(409)
           .json({ message: "Conflito: CPF já cadastrado." });
       }
-      const resultado = await clienteModel.insert(nome, cpf, email, cep);
+      const emailExistente = await clienteModel.selectByEmail(email);
+      if (emailExistente.length > 0) {
+        // Retorna o status 409 (Conflict)
+        return res
+          .status(409)
+          .json({ message: "Conflito: Email já cadastrado." });
+      }
+      const resultado = await clienteModel.insert(nome, cpf, email);
       res
         .status(201)
         .json({ message: "Registro incluído com sucesso", data: resultado });
@@ -35,4 +65,4 @@ const controllerFunc = {
   },
 };
 
-module.exports = { controllerFunc };
+module.exports = { clienteController };
