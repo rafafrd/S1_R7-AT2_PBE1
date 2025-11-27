@@ -1,4 +1,5 @@
 const { clienteModel } = require("../models/clienteModel");
+const { buscaCep } = require("../utils/buscaCep");
 
 const controllerFunc = {
   /**
