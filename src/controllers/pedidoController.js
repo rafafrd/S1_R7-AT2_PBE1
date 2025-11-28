@@ -12,7 +12,14 @@ const pedidoController = {
    */
   selecionaTodos: async (req, res) => {
     try {
-      const resultado = await pedidoModel.selectAll();
+      let resultado;
+
+      if (req.query.id_cliente) {
+        resultado = await pedidoModel.selectByClienteId(req.query.id_cliente);
+      } else {
+        resultado = await pedidoModel.selectAll();
+      }
+
       if (resultado.length === 0) {
         return res
           .status(200)
@@ -28,6 +35,21 @@ const pedidoController = {
     try {
       const { id } = req.params;
       const resultado = await pedidoModel.selectById(id);
+      if (resultado.length === 0) {
+        return res
+          .status(200)
+          .json({ message: "A consulta não retornou resultados" });
+      }
+      res.status(200).json({ data: resultado });
+    } catch (error) {
+      console.error(`Erro ao executar: ${error}`);
+      res.status(500).json({ message: "Ocorreu um erro no servidor" });
+    }
+  },
+  VerPorClienteId: async (req, res) => {
+    try {
+      const { id_cliente } = req.query;
+      const resultado = await pedidoModel.selectByClienteId(id_cliente);
       if (resultado.length === 0) {
         return res
           .status(200)

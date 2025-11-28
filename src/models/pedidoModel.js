@@ -7,8 +7,14 @@ const pedidoModel = {
     const [rows] = await pool.query(sql);
     return rows;
   },
-  selectById: async (pId_cliente) => {
+  selectById: async (pId_pedido) => {
     const sql = "SELECT * FROM pedidos WHERE id_pedido = ?;";
+    const values = [pId_pedido];
+    const [rows] = await pool.query(sql, values);
+    return rows;
+  },
+  selectByClienteId: async (pId_cliente) => {
+    const sql = "SELECT * FROM pedidos WHERE id_cliente = ?;";
     const values = [pId_cliente];
     const [rows] = await pool.query(sql, values);
     return rows;
