@@ -1,7 +1,7 @@
 // src/utils/consultaCep.js
 const axios = require('axios');
 
-async function consultarCepAxios(cep) {
+async function consultarCep(cep) {
     try {
         const url = `https://viacep.com.br/ws/${cep}/json/`;
         const response = await axios.get(url);
@@ -18,4 +18,4 @@ async function consultarCepAxios(cep) {
     }
 }
 
-module.exports = { consultarCepAxios };
+module.exports = { consultarCep };

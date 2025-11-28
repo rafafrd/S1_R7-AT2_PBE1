@@ -1,21 +1,21 @@
 const { clienteModel } = require("../models/clienteModel");
-const { buscaCep } = require("../utils/buscaCep");
 
-const controllerFunc = {
+const clienteController = {
   /**
    *
    * @param {*} req
    * @param {*} res
    * @returns
    */
-  inserirCliente: async (req, res) => {
+  insertDadosCliente: async (req, res) => {
     try {
-      const { nome, cpf, email, cep } = req.body;
-      if (!nome || !cpf || isNaN(cpf) || !email || !cep || isNaN(cep)) {
+      const { nome, cpf, email, cep, telefone } = req.body;
+      if (!nome || !cpf || isNaN(cpf) || !email || !cep || isNaN(cep) || !telefone || isNaN(telefone)) {
         return res
           .status(400)
-          .json({ message: "Verifique os dados enviados e tente novamente" });
+          .json({ message: telefone });
       }
+
       const clienteExistente = await clienteModel.selectByCpf(cpf);
       if (clienteExistente.length > 0) {
         // Retorna o status 409 (Conflict)
@@ -23,7 +23,7 @@ const controllerFunc = {
           .status(409)
           .json({ message: "Conflito: CPF já cadastrado." });
       }
-      const resultado = await clienteModel.insert(nome, cpf, email, cep);
+      const resultado = await clienteModel.insertDadosCliente(nome, cpf, email, cep, telefone);
       res
         .status(201)
         .json({ message: "Registro incluído com sucesso", data: resultado });
@@ -35,4 +35,4 @@ const controllerFunc = {
   },
 };
 
-module.exports = { controllerFunc };
+module.exports = { clienteController };

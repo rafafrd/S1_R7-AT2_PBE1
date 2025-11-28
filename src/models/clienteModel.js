@@ -1,5 +1,5 @@
 const { pool } = require("../config/db");
-const { buscaCep } = require("../utils/buscaCep");
+const { consultarCep } = require("../utils/buscaCep");
 
 const clienteModel = {
   // Busca de todos os clientes;
@@ -8,25 +8,27 @@ const clienteModel = {
     const [rows] = await pool.query(sql);
     return rows;
   },
-  insertDadosCliente: async (pIdCliente, pNomeCliente, pCpf, pEmail, pCep, pTelefone) => {
+  insertDadosCliente: async (pNomeCliente, pCpf, pEmail, pCep, pTelefone) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
-      const dadosEndereco = await buscaCep(pCep)
+      const dadosEndereco = await consultarCep(pCep)
 
       // tabela clientes
       const sqlClientes = "INSERT INTO clientes(nome, cpf, email) VALUES(?,?,?);";
       const valuesClientes = [pNomeCliente, pCpf, pEmail];
       const [rowsClientes] = await connection.query(sqlClientes, valuesClientes);
 
+      const novoIdCliente = rowsClientes.insertId;
+      console.log("Novo ID Gerado pelo Banco:", novoIdCliente);
       // tabela telefones
       const sqlTelefones = "INSERT INTO telefones(telefone, id_cliente) VALUES(?,?);";
-      const valuesTelefones = [pTelefone, pIdCliente]
+      const valuesTelefones = [pTelefone, novoIdCliente]
       const [rowsTelefones] = await connection.query(sqlTelefones, valuesTelefones);
 
       // tabela enderecos
-      const sqlEnderecos = "INSERT INTO enderecos(logradouro, numero, bairro, complemento, cidade, estado, cep) VALUES (?,?,?,?,?,?,?);";
-      const valuesEnderecos = [pCep, dadosEndereco.logradouro, dadosEndereco.bairro, dadosEndereco.complemento, dadosEndereco.localidade, dadosEndereco.estado]
+      const sqlEnderecos = "INSERT INTO enderecos(logradouro, numero, bairro, complemento, cidade, estado, cep, id_cliente) VALUES (?,?,?,?,?,?,?);";
+      const valuesEnderecos = [pCep, dadosEndereco.logradouro, dadosEndereco.bairro, dadosEndereco.complemento, dadosEndereco.localidade, dadosEndereco.estado, novoIdCliente]
       const [rowsEnderecos] = await connection.query(sqlEnderecos, valuesEnderecos)
 
       connection.commit();
@@ -38,13 +40,13 @@ const clienteModel = {
     }
   },
   selectByCpf: async (pCpf) => {
-    const sql = "SELECT * FROM clientes WHERE cpf_cliente = ?;";
+    const sql = "SELECT * FROM clientes WHERE cpf = ?;";
     const values = [pCpf];
     const [rows] = await pool.query(sql, values);
     return rows;
   },
   selectByEmail: async (pEmail) => {
-    const sql = "SELECT * FROM clientes WHERE email_cliente = ?;";
+    const sql = "SELECT * FROM clientes WHERE email = ?;";
     const values = [pEmail];
     const [rows] = await pool.query(sql, values);
     return rows;
