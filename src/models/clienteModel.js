@@ -8,11 +8,11 @@ const clienteModel = {
     const [rows] = await pool.query(sql);
     return rows;
   },
-  insertDadosCliente: async (pNomeCliente, pCpf, pEmail, pCep, pNumero, pTelefone) => {
+  insertDadosCliente: async (pNomeCliente, pCpf, pEmail, pCep, pNumero, pTelefone, pDadosEndereco) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
-      const dadosEndereco = await consultarCep(pCep)
+      
 
       // tabela clientes
       const sqlClientes = "INSERT INTO clientes(nome, cpf, email) VALUES(?,?,?);";
@@ -26,7 +26,7 @@ const clienteModel = {
       const [rowsTelefones] = await connection.query(sqlTelefones, valuesTelefones);
       // tabela enderecos
       const sqlEnderecos = "INSERT INTO enderecos(logradouro, numero, bairro, complemento, cidade, estado, cep, id_cliente) VALUES (?,?,?,?,?,?,?,?);";
-      const valuesEnderecos = [dadosEndereco.logradouro, pNumero, dadosEndereco.bairro, dadosEndereco.complemento, dadosEndereco.localidade, dadosEndereco.estado, pCep, novoIdCliente]
+      const valuesEnderecos = [pDadosEndereco.logradouro, pNumero, pDadosEndereco.bairro, pDadosEndereco.complemento, pDadosEndereco.localidade, pDadosEndereco.estado, pCep, novoIdCliente]
       const [rowsEnderecos] = await connection.query(sqlEnderecos, valuesEnderecos)
 
       connection.commit();

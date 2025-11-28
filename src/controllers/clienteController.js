@@ -1,4 +1,6 @@
 const { clienteModel } = require("../models/clienteModel");
+const { consultarCep } = require("../utils/buscaCep");
+
 
 const clienteController = {
   /**
@@ -39,6 +41,8 @@ const clienteController = {
         return res.status(400).json({ message: telefone });
       }
 
+      const dadosEndereco = await consultarCep(cep)
+
       const clienteExistente = await clienteModel.selectByCpf(cpf);
       if (clienteExistente.length > 0) {
         // Retorna o status 409 (Conflict)
@@ -46,7 +50,7 @@ const clienteController = {
           .status(409)
           .json({ message: "Conflito: CPF já cadastrado." });
       }
-      const resultado = await clienteModel.insertDadosCliente(nome,cpf,email,cep,numero,telefone);
+      const resultado = await clienteModel.insertDadosCliente(nome,cpf,email,cep,numero, telefone, dadosEndereco);
       res
         .status(201)
         .json({ message: "Registro incluído com sucesso", data: resultado });
