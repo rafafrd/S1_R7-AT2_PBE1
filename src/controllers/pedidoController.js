@@ -24,6 +24,21 @@ const pedidoController = {
       res.status(500).json({ message: "Ocorreu um erro no servidor" });
     }
   },
+  VerPorId: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const resultado = await pedidoModel.selectById(id);
+      if (resultado.length === 0) {
+        return res
+          .status(200)
+          .json({ message: "A consulta não retornou resultados" });
+      }
+      res.status(200).json({ data: resultado });
+    } catch (error) {
+      console.error(`Erro ao executar: ${error}`);
+      res.status(500).json({ message: "Ocorreu um erro no servidor" });
+    }
+  },
   /**
    * Cria um novo pedido, incluindo seus itens, validando os dados enviados.
    *
