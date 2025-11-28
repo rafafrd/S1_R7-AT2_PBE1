@@ -24,6 +24,56 @@ const pedidoController = {
       res.status(500).json({ message: "Ocorreu um erro no servidor" });
     }
   },
+  /**
+   * Cria um novo pedido, incluindo seus itens, validando os dados enviados.
+   *
+   * @async
+   * @function criarPedido
+   * @param {object} req Objeto Request contendo os dados do pedido.
+   * @param {object} res Objeto Response usado para retornar o resultado.
+   * @returns {Promise<object>} JSON com a confirmação da criação.
+   *
+   * @example
+   * // POST /pedido
+   * // body:
+   * // {
+   * //   "id_cliente": 1,
+   * //   "valor_pedido": 150.90,
+   * //   "data_pedido": "2025-01-10",
+   * //   "id_produto": 10,
+   * //   "quantidade": 2,
+   * //   "valor_item": 75.45
+   * // }
+   * app.post("/pedido", pedidoController.criarPedido);
+   */
+  criarPedido: async (req, res) => {
+    try {
+      const { id_cliente, peso_carga } = req.body;
+
+      if (
+        !id_cliente ||
+        !peso_carga ||
+        isNaN(peso_carga) ||
+        isNaN(id_cliente) ||
+        peso_carga <= 0
+      ) {
+        return res.status(400).json({
+          message: "Verifique os dados enviados e tente novamente",
+        });
+      }
+      const resultado = await pedidoModel.insertPedido(id_cliente, peso_carga);
+      res.status(201).json({
+        message: "Registro incluído com sucesso",
+        data: resultado,
+      });
+    } catch (error) {
+      console.error(`Erro ao executar: ${error}`);
+      res.status(500).json({
+        message: "Ocorreu um erro no servidor",
+        errorMessage: error.message,
+      });
+    }
+  },
 };
 
 module.exports = { pedidoController };
