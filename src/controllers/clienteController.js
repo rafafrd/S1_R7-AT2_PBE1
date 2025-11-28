@@ -30,34 +30,71 @@ const clienteController = {
    * @param {*} res
    * @returns
    */
-  inserirCliente: async (req, res) => {
+  // inserirCliente: async (req, res) => {
+  //   try {
+  //     const { nome, cpf, email } = req.body;
+  //     if (!nome || !cpf || isNaN(cpf) || !email) {
+  //       return res
+  //         .status(400)
+  //         .json({ message: "Verifique os dados enviados e tente novamente" });
+  //     }
+  //     const clienteExistente = await clienteModel.selectByCpf(cpf);
+  //     if (clienteExistente.length > 0) {
+  //       // Retorna o status 409 (Conflict)
+  //       return res
+  //         .status(409)
+  //         .json({ message: "Conflito: CPF já cadastrado." });
+  //     }
+  //     const emailExistente = await clienteModel.selectByEmail(email);
+  //     if (emailExistente.length > 0) {
+  //       // Retorna o status 409 (Conflict)
+  //       return res
+  //         .status(409)
+  //         .json({ message: "Conflito: Email já cadastrado." });
+  //     }
+  //     const resultado = await clienteModel.insert(nome, cpf, email);
+  //     res
+  //       .status(201)
+  //       .json({ message: "Registro incluído com sucesso", data: resultado });
+  //   } catch (error) {
+  //     // Se o erro for de 'UNIQUE constraint', mais amigavel
+  //     console.error(`Erro ao executar: ${error}`);
+  //     res.status(500).json({ message: "Ocorreu um erro no servidor" });
+  //   }
+  // },
+  /**
+   * Exclui um cliente do banco de dados pelo ID.
+   * Rota DELETE /clientes/:id_cliente
+   * @async
+   * @function deleteCliente
+   * @param {Request} req Objeto da requisição (params: 'id_cliente').
+   * @param {Response} res Objeto da resposta HTTP
+   * @returns {Promise<Response>} Retorna um JSON com a mensagem de sucesso ou erro.
+   */
+  deleteCliente: async (req, res) => {
     try {
-      const { nome, cpf, email } = req.body;
-      if (!nome || !cpf || isNaN(cpf) || !email) {
+      const id_cliente = Number(req.params.id_cliente);
+      // validação ID
+      if (isNaN(id_cliente) || id_cliente <= 0) {
         return res
           .status(400)
-          .json({ message: "Verifique os dados enviados e tente novamente" });
+          .json({ message: "ID do cliente inválido ou não fornecido." });
       }
-      const clienteExistente = await clienteModel.selectByCpf(cpf);
-      if (clienteExistente.length > 0) {
-        // Retorna o status 409 (Conflict)
+      const clienteSelecionado = await clienteModel.selectById(id_cliente);
+      if (clienteSelecionado.length === 0) {
+        return res.status(404).json({ message: "Cliente Não localizado" });
+      }
+      const resultDelete = await clienteModel.delete(id_cliente);
+      if (resultDelete.affectedRows === 1) {
         return res
-          .status(409)
-          .json({ message: "Conflito: CPF já cadastrado." });
+          .status(200)
+          .json({ message: "Cliente excluído com sucesso" });
+      } else {
+        res
+          .status(500)
+          .json({ message: "Ocorreu um erro ao excluir o o cliente." });
       }
-      const emailExistente = await clienteModel.selectByEmail(email);
-      if (emailExistente.length > 0) {
-        // Retorna o status 409 (Conflict)
-        return res
-          .status(409)
-          .json({ message: "Conflito: Email já cadastrado." });
-      }
-      const resultado = await clienteModel.insert(nome, cpf, email);
-      res
-        .status(201)
-        .json({ message: "Registro incluído com sucesso", data: resultado });
     } catch (error) {
-      // Se o erro for de 'UNIQUE constraint', mais amigavel
       console.error(`Erro ao executar: ${error}`);
       res.status(500).json({ message: "Ocorreu um erro no servidor" });
     }
