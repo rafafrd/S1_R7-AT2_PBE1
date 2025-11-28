@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`tipo_entrega` (
 CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`entrega` (
     `id_entrega` INT NOT NULL AUTO_INCREMENT,
     `id_pedido` INT NOT NULL,
+    `distancia_km` DECIMAL(10, 2) NOT NULL,
     `valor_distancia` DECIMAL(10, 2) NOT NULL,
     `valor_peso` DECIMAL(10, 2) NOT NULL,
     `acrescimo` INT NOT NULL,
