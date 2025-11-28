@@ -3,6 +3,24 @@ const { consultarCep } = require("../utils/buscaCep");
 
 const clienteModel = {
   // Busca de todos os clientes;
+  /**
+   *
+   * @returns
+   * SELECT
+   * c.id_cliente,
+   * c.nome,
+   * t.telefone,
+   * e.logradouro,
+   * e.numero,
+   * e.cidade,
+   * e.estado,
+   * e.cep
+   * FROM clientes c
+   * JOIN enderecos e
+   *   ON c.id_cliente = e.id_cliente
+   * JOIN telefones t
+   *   ON c.id_cliente = t.id_cliente;
+   */
   selectAll: async () => {
     const sql =
       "SELECT c.id_cliente, c.nome, t.telefone, e.logradouro, e.numero, e.cidade, e.estado, e.cep FROM clientes c JOIN enderecos e  ON c.id_cliente = e.id_cliente JOIN telefones t ON c.id_cliente = t.id_cliente;";
