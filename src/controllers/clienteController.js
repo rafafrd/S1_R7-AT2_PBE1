@@ -97,6 +97,13 @@ const clienteController = {
           .status(409)
           .json({ message: "Conflito: CPF já cadastrado." });
       }
+      const emailExistente = await clienteModel.selectByEmail(email);
+      if (emailExistente.length > 0) {
+        // Retorna o status 409 (Conflict)
+        return res
+          .status(409)
+          .json({ message: "Conflito: Email já cadastrado." });
+      }
       const resultado = await clienteModel.insertDadosCliente(
         nome,
         cpf,
