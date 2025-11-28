@@ -8,7 +8,7 @@ const clienteModel = {
    * @returns
    * SELECT
    * c.id_cliente,
-   * c.nome,
+   * c.nome,J
    * t.telefone,
    * e.logradouro,
    * e.numero,

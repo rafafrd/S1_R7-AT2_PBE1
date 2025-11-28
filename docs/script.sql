@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`enderecos` (
 -- -----------------------------------------------------
 -- Table `rapido_seguro_db`.`pedido`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`pedido` (
+CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`pedidos` (
     `id_pedido` INT NOT NULL AUTO_INCREMENT,
     `id_cliente` INT NOT NULL,
     `data_pedido` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`tipo_entrega` (
 -- -----------------------------------------------------
 -- Table `rapido_seguro_db`.`entrega`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`entrega` (
+CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`entregas` (
     `id_entrega` INT NOT NULL AUTO_INCREMENT,
     `id_pedido` INT NOT NULL,
     `distancia_km` DECIMAL(10, 2) NOT NULL,
