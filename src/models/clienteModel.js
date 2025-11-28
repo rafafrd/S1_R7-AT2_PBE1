@@ -8,7 +8,7 @@ const clienteModel = {
     const [rows] = await pool.query(sql);
     return rows;
   },
-  insertDadosCliente: async (pNomeCliente, pCpf, pEmail, pCep, pTelefone) => {
+  insertDadosCliente: async (pNomeCliente, pCpf, pEmail, pCep, pNumero, pTelefone) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
@@ -20,15 +20,13 @@ const clienteModel = {
       const [rowsClientes] = await connection.query(sqlClientes, valuesClientes);
 
       const novoIdCliente = rowsClientes.insertId;
-      console.log("Novo ID Gerado pelo Banco:", novoIdCliente);
       // tabela telefones
       const sqlTelefones = "INSERT INTO telefones(telefone, id_cliente) VALUES(?,?);";
       const valuesTelefones = [pTelefone, novoIdCliente]
       const [rowsTelefones] = await connection.query(sqlTelefones, valuesTelefones);
-
       // tabela enderecos
-      const sqlEnderecos = "INSERT INTO enderecos(logradouro, numero, bairro, complemento, cidade, estado, cep, id_cliente) VALUES (?,?,?,?,?,?,?);";
-      const valuesEnderecos = [pCep, dadosEndereco.logradouro, dadosEndereco.bairro, dadosEndereco.complemento, dadosEndereco.localidade, dadosEndereco.estado, novoIdCliente]
+      const sqlEnderecos = "INSERT INTO enderecos(logradouro, numero, bairro, complemento, cidade, estado, cep, id_cliente) VALUES (?,?,?,?,?,?,?,?);";
+      const valuesEnderecos = [dadosEndereco.logradouro, pNumero, dadosEndereco.bairro, dadosEndereco.complemento, dadosEndereco.localidade, dadosEndereco.estado, pCep, novoIdCliente]
       const [rowsEnderecos] = await connection.query(sqlEnderecos, valuesEnderecos)
 
       connection.commit();

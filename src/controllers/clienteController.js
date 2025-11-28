@@ -33,19 +33,12 @@ const clienteController = {
    */
   insertDadosCliente: async (req, res) => {
     try {
-      const { nome, cpf, email, cep, telefone } = req.body;
+      const { nome, cpf, email, telefone, cep, numero  } = req.body;
       if (
-        !nome ||
-        !cpf ||
-        isNaN(cpf) ||
-        !email ||
-        !cep ||
-        isNaN(cep) ||
-        !telefone ||
-        isNaN(telefone)
-      ) {
+        !nome || !cpf || isNaN(cpf) || !email || !cep ||isNaN(cep) ||!telefone ||isNaN(telefone) || !numero || isNaN(numero)) {
         return res.status(400).json({ message: telefone });
       }
+
       const clienteExistente = await clienteModel.selectByCpf(cpf);
       if (clienteExistente.length > 0) {
         // Retorna o status 409 (Conflict)
@@ -53,18 +46,11 @@ const clienteController = {
           .status(409)
           .json({ message: "Conflito: CPF já cadastrado." });
       }
-      const resultado = await clienteModel.insertDadosCliente(
-        nome,
-        cpf,
-        email,
-        cep,
-        telefone
-      );
+      const resultado = await clienteModel.insertDadosCliente(nome,cpf,email,cep,numero,telefone);
       res
         .status(201)
         .json({ message: "Registro incluído com sucesso", data: resultado });
     } catch (error) {
-      // Se o erro for de 'UNIQUE constraint', mais amigavel
       console.error(`Erro ao executar: ${error}`);
       res.status(500).json({ message: "Ocorreu um erro no servidor" });
     }
