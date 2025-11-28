@@ -75,7 +75,6 @@ CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`pedidos` (
     `id_pedido` INT NOT NULL AUTO_INCREMENT COMMENT 'Chave primária da tabela, identificador único do pedido.',
     `id_cliente` INT NOT NULL COMMENT 'Chave estrangeira que referencia o cliente que fez o pedido.',
     `data_pedido` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Data e hora em que o pedido foi registrado.',
-    `peso_carga` INT NOT NULL COMMENT 'Peso da carga em quilogramas (kg).',
     PRIMARY KEY (`id_pedido`),
     INDEX `FK_pedidos_clientes_idx` (`id_cliente` ASC) VISIBLE,
     CONSTRAINT `FK_pedidos_clientes` FOREIGN KEY (`id_cliente`) REFERENCES `rapido_seguro_db`.`clientes` (`id_cliente`) ON DELETE NO ACTION ON UPDATE NO ACTION
@@ -113,9 +112,12 @@ CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`tipo_entrega` (
 CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`entregas` (
     `id_entrega` INT NOT NULL AUTO_INCREMENT COMMENT 'Chave primária da tabela, identificador único da entrega.',
     `id_pedido` INT COMMENT 'Chave estrangeira que referencia o pedido relacionado.',
+    `valor_base_distancia` DECIMAL(10, 2) NOT NULL COMMENT 'Valor base por quilômetro (km) para o cálculo da distância.',
     `distancia_km` DECIMAL(10, 2) COMMENT 'Distância percorrida para a entrega em quilômetros (km).',
     `valor_distancia` DECIMAL(10, 2) NOT NULL COMMENT 'Cálculo: distância * valor base por km.',
-    `valor_peso` DECIMAL(10, 2) NOT NULL COMMENT 'Cálculo: peso da carga * valor base por kg.',
+    `valor_base_carga` DECIMAL(10, 2) NOT NULL COMMENT 'Valor base por quilograma (kg) da carga.',
+    `peso_carga` INT NOT NULL COMMENT 'Peso da carga em quilogramas (kg).',
+    `valor_peso` DECIMAL(10, 2) COMMENT 'Cálculo: peso da carga * valor base por kg.',
     `acrescimo` INT NOT NULL COMMENT 'Valor do acréscimo em R$ (20% se for urgente, 0 se normal).',
     `desconto` INT NOT NULL COMMENT 'Valor do desconto em R$ (10% se valor final > R$ 500,00, 0 caso contrário).',
     `taxa_extra` DECIMAL(10, 2) NOT NULL COMMENT 'Valor da taxa fixa extra em R$ (R$ 15,00 se peso > 50kg, 0 caso contrário).',
