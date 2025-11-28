@@ -1,10 +1,16 @@
 const { pool } = require("../config/db");
 
 const pedidoModel = {
-  // Busca de todos os clientes;
+  // Busca de todos os pedidos;
   selectAll: async () => {
     const sql = "SELECT * FROM pedidos;";
     const [rows] = await pool.query(sql);
+    return rows;
+  },
+  selectById: async (pId_cliente) => {
+    const sql = "SELECT * FROM pedidos WHERE id_pedido = ?;";
+    const values = [pId_cliente];
+    const [rows] = await pool.query(sql, values);
     return rows;
   },
   insertPedido: async (pIdCliente, pPesoCarga) => {
