@@ -1,16 +1,26 @@
 const { clienteModel } = require("../models/clienteModel");
 const { consultarCep } = require("../utils/buscaCep");
 
-
 const clienteController = {
   /**
    * Busca e retorna todos os clientes cadastrados.
    * Rota GET /clientes
    * @async
    * @function selecionaTodos
-   * @param {Request} req Objeto da requisição HTTP
-   * @param {Response} res Objeto da resposta HTTP
-   * @returns {Promise<Response>} Retorna um JSON com a lista de clientes ou uma mensagem.
+   * @param {Request} req Objeto da requisição HTTP (não utiliza body ou params).
+   * @param {Response} res Objeto da resposta HTTP.
+   * @returns {Promise<Response>} Retorna um JSON com a lista de clientes (200) ou uma mensagem de erro (500).
+   * @example
+   * // Requisição: GET /clientes
+   * // Resposta 200 (Sucesso):
+   * // {
+   * //   "data": [
+   * //     { "id": 1, "nome": "João Silva", "cpf": "123..." },
+   * //     { "id": 2, "nome": "Maria Souza", "cpf": "456..." }
+   * //   ]
+   * // }
+   * // Resposta 200 (Sem resultados):
+   * // { "message": "A consulta não retornou resultados" }
    */
   selecionaTodos: async (req, res) => {
     try {
@@ -28,20 +38,57 @@ const clienteController = {
   },
 
   /**
-   *
-   * @param {*} req
-   * @param {*} res
-   * @returns
+   * Insere um novo cliente junto com seus dados de endereço e telefone.
+   * Rota POST /clientes
+   * Realiza a consulta do CEP via Webservice (VIACEP) e verifica duplicidade de CPF.
+   * @async
+   * @function insertDadosCliente
+   * @param {Request} req Objeto da requisição HTTP (body).
+   * @param {Response} res Objeto da resposta HTTP.
+   * @returns {Promise<Response>} Retorna 201 em caso de sucesso, ou 400/409/500 em caso de erro.
+   * @property {string} req.body.nome Nome completo do cliente.
+   * @property {string} req.body.cpf CPF do cliente (não pode ser duplicado).
+   * @property {string} req.body.email Email do cliente (não pode ser duplicado).
+   * @property {string} req.body.telefone Telefone do cliente.
+   * @property {string} req.body.cep CEP do endereço.
+   * @property {number} req.body.numero Número do endereço.
+   * @example
+   * // Requisição: POST /clientes
+   * // Body JSON:
+   * // {
+   * //   "nome": "Carlos Mendes",
+   * //   "cpf": "11122233344",
+   * //   "email": "carlos@exemplo.com",
+   * //   "telefone": "19988887777",
+   * //   "cep": "13013000",
+   * //   "numero": 150
+   * // }
+   * // Resposta 201 (Sucesso):
+   * // { "message": "Registro incluído com sucesso", "data": { ... } }
+   * // Resposta 409 (Conflito):
+   * // { "message": "Conflito: CPF já cadastrado." }
    */
   insertDadosCliente: async (req, res) => {
     try {
-      const { nome, cpf, email, telefone, cep, numero  } = req.body;
+      const { nome, cpf, email, telefone, cep, numero } = req.body;
       if (
-        !nome || !cpf || isNaN(cpf) || !email || !cep ||isNaN(cep) ||!telefone ||isNaN(telefone) || !numero || isNaN(numero)) {
-        return res.status(400).json({ message: telefone });
+        !nome ||
+        !cpf ||
+        isNaN(cpf) ||
+        !email ||
+        !cep ||
+        isNaN(cep) ||
+        !telefone ||
+        isNaN(telefone) ||
+        !numero ||
+        isNaN(numero)
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Dados do cliente incompletos ou inválidos." });
       }
 
-      const dadosEndereco = await consultarCep(cep)
+      const dadosEndereco = await consultarCep(cep);
 
       const clienteExistente = await clienteModel.selectByCpf(cpf);
       if (clienteExistente.length > 0) {
@@ -50,7 +97,15 @@ const clienteController = {
           .status(409)
           .json({ message: "Conflito: CPF já cadastrado." });
       }
-      const resultado = await clienteModel.insertDadosCliente(nome,cpf,email,cep,numero, telefone, dadosEndereco);
+      const resultado = await clienteModel.insertDadosCliente(
+        nome,
+        cpf,
+        email,
+        cep,
+        numero,
+        telefone,
+        dadosEndereco
+      );
       res
         .status(201)
         .json({ message: "Registro incluído com sucesso", data: resultado });
@@ -66,8 +121,17 @@ const clienteController = {
    * @async
    * @function deleteCliente
    * @param {Request} req Objeto da requisição (params: 'id_cliente').
-   * @param {Response} res Objeto da resposta HTTP
-   * @returns {Promise<Response>} Retorna um JSON com a mensagem de sucesso ou erro.
+   * @param {Response} res Objeto da resposta HTTP.
+   * @returns {Promise<Response>} Retorna um JSON com a mensagem de sucesso (200) ou erro (400/404/500).
+   * @property {number} req.params.id_cliente O ID do cliente a ser excluído.
+   * @example
+   * // Requisição: DELETE /clientes/5
+   * // Resposta 200 (Sucesso):
+   * // { "message": "Cliente excluído com sucesso" }
+   * // Resposta 404 (Não localizado):
+   * // { "message": "Cliente Não localizado" }
+   * // Resposta 400 (ID inválido):
+   * // { "message": "ID do cliente inválido ou não fornecido." }
    */
 
   deleteCliente: async (req, res) => {
