@@ -13,6 +13,12 @@ const pedidoModel = {
     const [rows] = await pool.query(sql, values);
     return rows;
   },
+  selectByClienteId: async (pId_cliente) => {
+    const sql = "SELECT * FROM pedidos WHERE id_cliente = ?;";
+    const values = [pId_cliente];
+    const [rows] = await pool.query(sql, values);
+    return rows;
+  },
   insertPedido: async (pIdCliente, pPesoCarga) => {
     const connection = await pool.getConnection();
     try {
