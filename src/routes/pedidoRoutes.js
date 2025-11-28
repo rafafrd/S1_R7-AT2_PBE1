@@ -3,6 +3,6 @@ const { pedidoController } = require("../controllers/pedidoController");
 const pedidoRoutes = express.Router();
 
 pedidoRoutes.get("/pedidos", pedidoController.selecionaTodos);
-pedidoRoutes.post("/pedido", pedidoController.criarPedido);
+pedidoRoutes.post("/pedidos", pedidoController.criarPedido);
 
 module.exports = { pedidoRoutes };
