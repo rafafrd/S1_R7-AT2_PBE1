@@ -39,6 +39,15 @@ const clienteModel = {
       throw error;
     }
   },
+
+  // Busca por ID
+  selectById: async (pId_cliente) => {
+    const sql = "SELECT * FROM clientes WHERE id_cliente = ?;";
+    const values = [pId_cliente];
+    const [rows] = await pool.query(sql, values);
+    return rows;
+  },
+
   selectByCpf: async (pCpf) => {
     const sql = "SELECT * FROM clientes WHERE cpf = ?;";
     const values = [pCpf];
@@ -48,6 +57,13 @@ const clienteModel = {
   selectByEmail: async (pEmail) => {
     const sql = "SELECT * FROM clientes WHERE email = ?;";
     const values = [pEmail];
+    const [rows] = await pool.query(sql, values);
+    return rows;
+  },
+  
+  delete: async (pId_cliente) => {
+    const sql = "DELETE FROM clientes WHERE id_cliente=?";
+    const values = [pId_cliente];
     const [rows] = await pool.query(sql, values);
     return rows;
   },

@@ -1,0 +1,7 @@
+const express = require("express");
+const { pedidoController } = require("../controllers/pedidoController");
+const pedidoRoutes = express.Router();
+
+pedidoRoutes.get("/pedidos", pedidoController.selecionaTodos);
+
+module.exports = { pedidoRoutes };
