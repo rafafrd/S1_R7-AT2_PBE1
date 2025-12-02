@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS `rapido_seguro_db`.`enderecos` (
     `bairro` VARCHAR(100) NOT NULL COMMENT 'Bairro. Obtido via VIACEP.',
     `complemento` VARCHAR(50) NULL COMMENT 'Complemento do endereço (opcional).',
     `cidade` VARCHAR(100) NOT NULL COMMENT 'Cidade. Obtido via VIACEP.',
+    
     `estado` VARCHAR(50) NOT NULL COMMENT 'Estado. Obtido via VIACEP.',
     `cep` VARCHAR(8) NOT NULL COMMENT 'CEP do endereço. Obtido via VIACEP.',
     `id_cliente` INT NOT NULL COMMENT 'Chave estrangeira que referencia o cliente proprietário do endereço.',
