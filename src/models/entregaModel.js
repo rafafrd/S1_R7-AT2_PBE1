@@ -29,7 +29,7 @@ const entregaModel = {
             // tabela Entrega
             const sqlEntrega = "INSERT INTO entregas(id_pedido, distancia_km, valor_distancia, valor_peso, id_status_entrega, id_tipo_entrega) VALUES(?,?,?,?,?,?);";
             const valuesEntrega = [pIdPedido, pDistancia, pValorDistancia, pValorPeso, novoIdStatusEntrega, novoIdTipoEntrega];
-            const [rowsEntrega] = await connection.query(sqlEntrega, valuesEntrega);
+            const [rowsEntrega] = await connection.query(sqlEntrega, valuesEntrega);           
 
             connection.commit();
             return {rowsTipoEntrega, rowsStatusEntrega, rowsEntrega}
