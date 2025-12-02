@@ -85,20 +85,14 @@ const pedidoController = {
    */
   criarPedido: async (req, res) => {
     try {
-      const { id_cliente, peso_carga } = req.body;
+      const { id_cliente, valor_base_distancia, distancia_km, valor_base_carga, peso_carga } = req.body;
 
-      if (
-        !id_cliente ||
-        !peso_carga ||
-        isNaN(peso_carga) ||
-        isNaN(id_cliente) ||
-        peso_carga <= 0
-      ) {
+      if (!id_cliente || isNaN(id_cliente) || !valor_base_distancia || isNaN(valor_base_distancia) || valor_base_distancia <= 0 || !distancia_km || isNaN(distancia_km)  || distancia_km <= 0 || !valor_base_carga || isNaN(valor_base_carga) || valor_base_carga <= 0 || !peso_carga || isNaN(peso_carga) || peso_carga <= 0) {
         return res.status(400).json({
-          message: "Verifique os dados enviados e tente novamente",
+          message: "Dados digitados incorretamente, tente novamente!"
         });
       }
-      const resultado = await pedidoModel.insertPedido(id_cliente, peso_carga);
+      const resultado = await pedidoModel.insertPedido(id_cliente, valor_base_distancia, distancia_km, valor_base_carga, peso_carga);
       res.status(201).json({
         message: "Registro incluído com sucesso",
         data: resultado,

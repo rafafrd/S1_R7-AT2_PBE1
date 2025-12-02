@@ -20,13 +20,13 @@ const entregaController = {
 
     insertDadosEntrega: async (req, res) => {
         try {
-            const { id_pedido, tipo_entrega, status_entrega, distancia, valor_distancia, valor_peso } = req.body;
-            if (!id_pedido || isNaN(id_pedido) || !tipo_entrega || !isNaN(tipo_entrega) || !status_entrega || !isNaN(status_entrega) || !distancia || isNaN(distancia) || !valor_distancia || isNaN(valor_distancia || !valor_peso || isNaN(valor_peso))) {
+            const { id_pedido, tipo_entrega, status_entrega, distancia, valor_base_distancia, valor_base_peso } = req.body;
+            if (!id_pedido || isNaN(id_pedido) || !tipo_entrega || !isNaN(tipo_entrega) || !status_entrega || !isNaN(status_entrega) || !distancia || isNaN(distancia) || !valor_base_distancia || isNaN(valor_base_distancia) || !valor_base_peso || isNaN(valor_base_peso)) {
                 return res.status(400).json({
                     message: "Dados digitados incorretamente, tente novamente!"
                 })
             }
-            const resultado = await entregaModel.insertDadosEntrega(id_pedido, tipo_entrega, status_entrega, distancia, valor_distancia, valor_peso)
+            const resultado = await entregaModel.insertDadosEntrega(id_pedido, tipo_entrega, status_entrega, distancia, valor_base_distancia, valor_base_peso)
             res.status(200).json({
                 message: "Registro incluído com sucesso", data: resultado
             })

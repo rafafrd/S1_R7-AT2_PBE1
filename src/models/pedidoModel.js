@@ -19,14 +19,14 @@ const pedidoModel = {
     const [rows] = await pool.query(sql, values);
     return rows;
   },
-  insertPedido: async (pIdCliente, pPesoCarga) => {
+  insertPedido: async (pIdCliente, pValorBaseDistancia, pDistancia, pValorBasePeso, pPesoCarga) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
       // insert 1 - pedido
       const sqlPedido =
-        "INSERT INTO pedidos (id_cliente, peso_carga) VALUES (?,?);";
-      const valuesPedido = [pIdCliente, pPesoCarga];
+        "INSERT INTO pedidos (id_cliente, valor_base_distancia, distancia_km, valor_base_carga, peso_carga) VALUES (?, ?, ?, ?, ?);";
+      const valuesPedido = [pIdCliente, pValorBaseDistancia, pDistancia, pValorBasePeso, pPesoCarga];
       const [rowsPedido] = await connection.query(sqlPedido, valuesPedido);
       connection.commit();
       return { rowsPedido };

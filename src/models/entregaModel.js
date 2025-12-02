@@ -7,7 +7,7 @@ const entregaModel = {
     return rows;
     },
 
-    insertDadosEntrega: async (pIdPedido, pTipoEntrega, pStatusEntrega, pDistancia, pValorDistancia, pValorPeso) => {
+    insertDadosEntrega: async (pIdPedido, pTipoEntrega, pStatusEntrega, pValorDistancia, pValorPeso) => {
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
@@ -27,8 +27,8 @@ const entregaModel = {
             const novoIdStatusEntrega = rowsStatusEntrega.insertId;
 
             // tabela Entrega
-            const sqlEntrega = "INSERT INTO entregas(id_pedido, distancia_km, valor_distancia, valor_peso, id_status_entrega, id_tipo_entrega) VALUES(?,?,?,?,?,?);";
-            const valuesEntrega = [pIdPedido, pDistancia, pValorDistancia, pValorPeso, novoIdStatusEntrega, novoIdTipoEntrega];
+            const sqlEntrega = "INSERT INTO entregas(id_pedido, valor_distancia, valor_peso) VALUES(?,?,?);";
+            const valuesEntrega = [pIdPedido, pDistancia, pValorBaseDistancia, pValorBasePeso, novoIdStatusEntrega, novoIdTipoEntrega];
             const [rowsEntrega] = await connection.query(sqlEntrega, valuesEntrega);           
 
             connection.commit();
