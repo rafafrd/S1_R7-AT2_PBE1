@@ -154,7 +154,7 @@ const clienteController = {
       if (clienteSelecionado.length === 0) {
         return res.status(404).json({ message: "Cliente Não localizado" });
       }
-      const resultDelete = await clienteModel.delete(id_cliente);
+      const resultDelete = await clienteModel.deletaCliente(id_cliente);
       if (resultDelete.affectedRows === 1) {
         return res
           .status(200)
@@ -162,7 +162,7 @@ const clienteController = {
       } else {
         res
           .status(500)
-          .json({ message: "Ocorreu um erro ao excluir o o cliente." });
+          .json({ message: "Ocorreu um erro ao excluir o cliente." });
       }
     } catch (error) {
       console.error(`Erro ao executar: ${error}`);

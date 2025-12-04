@@ -188,6 +188,36 @@ const pedidoController = {
       });
     }
   },
+
+  deletePedido: async (req, res) => {
+    try {
+      const id_pedido = Number(req.params.id_pedido);
+      // validação ID
+      if (isNaN(id_pedido) || id_pedido <= 0) {
+        return res
+          .status(400)
+          .json({ message: "ID do pedido inválido ou não fornecido." });
+      }
+      const pedidoSelecionado = await pedidoModel.selectById(id_pedido);
+      if (pedidoSelecionado.length === 0) {
+        return res.status(404).json({ message: "Pedido Não localizado" });
+      }
+      const resultDelete = await pedidoController.deletePedido(id_pedido);
+      if (resultDelete.affectedRows === 1) {
+        return res
+          .status(200)
+          .json({ message: "Pedido excluído com sucesso" });
+      } else {
+        res
+          .status(500)
+          .json({ message: "Ocorreu um erro ao excluir o pedido." });
+      }
+    } catch (error) {
+      console.error(`Erro ao executar: ${error}`);
+      res.status(500).json({ message: "Ocorreu um erro no servidor" });
+    }
+  },
+
 };
 
 module.exports = { pedidoController };

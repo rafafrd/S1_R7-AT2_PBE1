@@ -144,21 +144,34 @@ const pedidoModel = {
 
       // deu certo, commita
       await connection.commit();
-
-      return {
-        mensagem: "Pedido e Entrega processados com sucesso",
-        id_pedido: novoIdPedido,
-        id_entrega: resultEntrega.insertId,
-        detalhes_calculo: {
-          valor_base_total: valorBaseTotal,
-          acrescimo,
-          taxa_extra: taxaExtra,
-          desconto,
-          valor_final: valorFinal,
-        },
-      };
+      return { resultPedido, resultEntrega};
     } catch (error) {
       // se der erro no cálculo ou no insert, desfaz tudo (Pedido não será criado sem entrega)
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+
+  deletaPedido:async (pId_pedido) => {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      // tabela entregas
+      const sqlEntregas = "DELETE FROM entregas WHERE id_pedido = ?;";
+      const valuesEntregas = [pId_pedido];
+      const [rowsEntregas] = await connection.query(sqlEntregas, valuesEntregas);
+
+      // tabela pedidos
+      const sqlPedidos = "DELETE FROM pedidos WHERE id_pedido = ?;";
+      const valuesPedidos = [pId_pedido];
+      const [rowsPedidos] = await connection.query(sqlPedidos, valuesPedidos); 
+
+      await connection.commit();
+      return { rowsEntregas, rowsPedidos};
+    } catch (error) {
       await connection.rollback();
       throw error;
     } finally {
