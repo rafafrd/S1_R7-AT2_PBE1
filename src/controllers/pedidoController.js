@@ -204,9 +204,7 @@ const pedidoController = {
       }
       const resultDelete = await pedidoController.deletePedido(id_pedido);
       if (resultDelete.affectedRows === 1) {
-        return res
-          .status(200)
-          .json({ message: "Pedido excluído com sucesso" });
+        return res.status(200).json({ message: "Pedido excluído com sucesso" });
       } else {
         res
           .status(500)
@@ -214,10 +212,14 @@ const pedidoController = {
       }
     } catch (error) {
       console.error(`Erro ao executar: ${error}`);
-      res.status(500).json({ message: "Ocorreu um erro no servidor" });
+      res
+        .status(500)
+        .json({
+          message: "Ocorreu um erro no servidor",
+          errorMessage: error.message,
+        });
     }
   },
-
 };
 
 module.exports = { pedidoController };
