@@ -174,17 +174,38 @@ const clienteModel = {
    * // Retorno esperado:
    * { "fieldCount": 0, "affectedRows": 1, "insertId": 0, "serverStatus": 2, "warningCount": 0, "message": "", "protocol41": true, "changedRows": 0 }
    */
-  delete: async (pId_cliente) => {
+  delete: async (pId_cliente, pId) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
 
-      const sql = "DELETE FROM clientes WHERE id_cliente = ?";
-      const values = [pId_cliente];
-      const [rows] = await connection.query(sql, values);
+      // tabela enderecos
+      const sqlEnderecos = "DELETE FROM enderecos WHERE id_cliente = ?;";
+      const valuesEnderecos = [pId_cliente];
+      const [rowsEnderecos] = await connection.query(sqlEnderecos, valuesEnderecos);
+
+      // tabela telefones
+      const sqlTelefones = "DELETE FROM telefones WHERE id_cliente = ?;";
+      const valuesTelefones = [pId_cliente];
+      const [rowsTelefones] = await connection.query(sqlTelefones, valuesTelefones);
+
+      // tabela entregas
+      const sqlEntregas = "DELETE FROM entregas WHERE id_pedido IN (SELECT id_pedido FROM pedidos WHERE id_cliente = ?);";
+      const valuesEntregas = [pId_cliente];
+      const [rowsEntregas] = await connection.query(sqlEntregas, valuesEntregas);
+
+      // tabelas pedidos
+      const sqlPedidos = "DELETE FROM pedidos WHERE id_cliente = ?;";
+      const valuesPedidos = [pId_cliente];
+      const [rowsPedidos] = await connection.query(sqlPedidos, valuesPedidos);
+
+      // tabelas clientes
+      const sqlClientes = "DELETE FROM clientes WHERE id_cliente = ?;";
+      const valuesClientes = [pId_cliente];
+      const [rowsClientes] = await connection.query(sqlClientes, valuesClientes);
 
       await connection.commit();
-      return rows;
+      return { rowsClientes, rowsTelefones, rowsEnderecos, rowsEntregas, rowsPedidos};
     } catch (error) {
       await connection.rollback();
       throw error;
