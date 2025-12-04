@@ -166,7 +166,9 @@ const clienteController = {
       }
     } catch (error) {
       console.error(`Erro ao executar: ${error}`);
-      res.status(500).json({ message: "Ocorreu um erro no servidor" });
+      res.status(500).json({ message: "Ocorreu um erro no servidor",
+        errorMessage: error.message,
+       });
     }
   },
 };
