@@ -155,7 +155,7 @@ const clienteController = {
         return res.status(404).json({ message: "Cliente Não localizado" });
       }
       const resultDelete = await clienteModel.deletaCliente(id_cliente);
-      if (resultDelete.affectedRows === 1) {
+      if (resultDelete.affectedRows !== 0) {
         return res
           .status(200)
           .json({ message: "Cliente excluído com sucesso" });
