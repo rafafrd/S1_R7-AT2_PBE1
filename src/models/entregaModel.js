@@ -1,71 +1,65 @@
 const { pool } = require("../config/db");
 
+/**
+ * Modelo responsável pelas operações de banco de dados relacionadas a Entregas.
+ * Gerencia a inserção manual de entregas, tipos de entrega e status.
+ */
 const entregaModel = {
+  /**
+   * Busca todas as entregas registradas no sistema.
+   * * @async
+   * @returns {Promise<Array<Object>>} Lista de todas as entregas.
+   * @example
+   * // Retorno esperado:
+   * [
+   * {
+   * "id_entrega": 1,
+   * "id_pedido": 50,
+   * "valor_distancia": 25.50,
+   * "valor_peso": 10.00,
+   * "acrescimo": 0.00,
+   * "desconto": 0.00,
+   * "taxa_extra": 0.00,
+   * "valor_final": 35.50,
+   * "id_status_entrega": 1,
+   * "id_tipo_entrega": 1
+   * }
+   * ]
+   */
   selectAllEntrega: async () => {
     const sql = "SELECT * FROM entregas;";
     const [rows] = await pool.query(sql);
     return rows;
   },
 
-  insertDadosEntrega: async (
-    pIdPedido,
-    pTipoEntrega,
-    pStatusEntrega,
-    pValorDistancia,
-    pValorPeso
-  ) => {
+  /**
+   * Remove uma entrega do banco de dados pelo ID.
+   * Envolvido em transação para segurança.
+   * * @async
+   * @param {number} pId_entrega - ID da entrega a ser removida.
+   * @returns {Promise<Object>} Resultado da exclusão.
+   * @throws {Error} Realiza rollback em caso de falha.
+   * @example
+   * // Retorno esperado:
+   * { "affectedRows": 1, "serverStatus": 2, ... }
+   */
+  delete: async (pId_entrega) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
 
-      // tabela tipoEntrega
-      const sqlTipoEntrega =
-        "INSERT INTO tipo_entrega(tipo_entrega) VALUES(?);";
-      const valuesTipoEntrega = [pTipoEntrega];
-      const [rowsTipoEntrega] = await connection.query(
-        sqlTipoEntrega,
-        valuesTipoEntrega
-      );
+      const sql = "DELETE FROM entregas WHERE id_entrega = ?";
+      const values = [pId_entrega];
+      const [rows] = await connection.query(sql, values);
 
-      const novoIdTipoEntrega = rowsTipoEntrega.insertId;
-
-      // tabela statusEntrega
-      const sqlStatusEntrega =
-        "INSERT INTO status_entrega(status_entrega) VALUES(?);";
-      const valuesStatusEntrega = [pStatusEntrega];
-      const [rowsStatusEntrega] = await connection.query(
-        sqlStatusEntrega,
-        valuesStatusEntrega
-      );
-
-      const novoIdStatusEntrega = rowsStatusEntrega.insertId;
-
-      // tabela Entrega
-      const sqlEntrega =
-        "INSERT INTO entregas(id_pedido, valor_distancia, valor_peso) VALUES(?,?,?);";
-      const valuesEntrega = [
-        pIdPedido,
-        pDistancia,
-        pValorBaseDistancia,
-        pValorBasePeso,
-        novoIdStatusEntrega,
-        novoIdTipoEntrega,
-      ];
-      const [rowsEntrega] = await connection.query(sqlEntrega, valuesEntrega);
-
-      connection.commit();
-      return { rowsTipoEntrega, rowsStatusEntrega, rowsEntrega };
+      await connection.commit();
+      return rows;
     } catch (error) {
-      // caso algum insert de erro, ele da rollback e cancela tudo
-      connection.rollback();
+      await connection.rollback();
       throw error;
+    } finally {
+      connection.release();
     }
-  },
-  delete: async (pId_cliente) => {
-    const sql = "DELETE FROM entregas WHERE id_entrega = ?";
-    const values = [pId_cliente];
-    const [rows] = await pool.query(sql, values);
-    return rows;
   },
 };
 
