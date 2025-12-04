@@ -157,82 +157,82 @@ INSERT INTO `status_entrega` (`status_entrega`) VALUES
 
 
 -- trigger entrega 
-DELIMITER $$
+-- DELIMITER $$
 
-CREATE TRIGGER trg_gerar_entrega_apos_pedido
-AFTER INSERT ON `pedidos`
-FOR EACH ROW
-BEGIN
+-- CREATE TRIGGER trg_gerar_entrega_apos_pedido
+-- AFTER INSERT ON `pedidos`
+-- FOR EACH ROW
+-- BEGIN
 
-    DECLARE v_valor_distancia DECIMAL(10, 2);
-    DECLARE v_valor_peso DECIMAL(10, 2);
-    DECLARE v_valor_base_total DECIMAL(10, 2);
-    DECLARE v_acrescimo DECIMAL(10, 2);
-    DECLARE v_desconto DECIMAL(10, 2);
-    DECLARE v_taxa_extra DECIMAL(10, 2);
-    DECLARE v_valor_final DECIMAL(10, 2);
-    DECLARE v_nome_tipo_entrega VARCHAR(20);
-    DECLARE v_valor_com_acrescimo_taxa DECIMAL(10, 2);
+--     DECLARE v_valor_distancia DECIMAL(10, 2);
+--     DECLARE v_valor_peso DECIMAL(10, 2);
+--     DECLARE v_valor_base_total DECIMAL(10, 2);
+--     DECLARE v_acrescimo DECIMAL(10, 2);
+--     DECLARE v_desconto DECIMAL(10, 2);
+--     DECLARE v_taxa_extra DECIMAL(10, 2);
+--     DECLARE v_valor_final DECIMAL(10, 2);
+--     DECLARE v_nome_tipo_entrega VARCHAR(20);
+--     DECLARE v_valor_com_acrescimo_taxa DECIMAL(10, 2);
 
-    -- 1. Calculando os valores bases
-    SET v_valor_distancia = NEW.distancia_km * NEW.valor_base_distancia;
-    SET v_valor_peso = NEW.peso_carga * NEW.valor_base_carga;
-    SET v_valor_base_total = v_valor_distancia + v_valor_peso;
+--     -- 1. Calculando os valores bases
+--     SET v_valor_distancia = NEW.distancia_km * NEW.valor_base_distancia;
+--     SET v_valor_peso = NEW.peso_carga * NEW.valor_base_carga;
+--     SET v_valor_base_total = v_valor_distancia + v_valor_peso;
 
-    -- 2. Buscando o tipo da entrega usando a FK recém-adicionada (NEW.id_tipo_entrega)
-    SELECT tipo_entrega INTO v_nome_tipo_entrega 
-    FROM tipo_entrega 
-    WHERE id_tipo_entrega = NEW.id_tipo_entrega; -- AGORA FUNCIONA
+--     -- 2. Buscando o tipo da entrega usando a FK recém-adicionada (NEW.id_tipo_entrega)
+--     SELECT tipo_entrega INTO v_nome_tipo_entrega 
+--     FROM tipo_entrega 
+--     WHERE id_tipo_entrega = NEW.id_tipo_entrega; -- AGORA FUNCIONA
 
-    -- 3. Regra: Acréscimo de 20% se for "urgente"
-    IF v_nome_tipo_entrega = 'urgente' THEN
-        SET v_acrescimo = v_valor_base_total * 0.20;
-    ELSE
-        SET v_acrescimo = 0.00;
-    END IF;
+--     -- 3. Regra: Acréscimo de 20% se for "urgente"
+--     IF v_nome_tipo_entrega = 'urgente' THEN
+--         SET v_acrescimo = v_valor_base_total * 0.20;
+--     ELSE
+--         SET v_acrescimo = 0.00;
+--     END IF;
 
-    -- 4. Regra: Taxa extra se pesar mais de 50kg
-    IF NEW.peso_carga > 50 THEN
-        SET v_taxa_extra = 15.00;
-    ELSE
-        SET v_taxa_extra = 0.00;
-    END IF;
+--     -- 4. Regra: Taxa extra se pesar mais de 50kg
+--     IF NEW.peso_carga > 50 THEN
+--         SET v_taxa_extra = 15.00;
+--     ELSE
+--         SET v_taxa_extra = 0.00;
+--     END IF;
 
-    -- 5. Valor intermediário (Valor Base + Acréscimo + Taxa Extra) para verificar desconto
-    SET v_valor_com_acrescimo_taxa = v_valor_base_total + v_acrescimo + v_taxa_extra;
+--     -- 5. Valor intermediário (Valor Base + Acréscimo + Taxa Extra) para verificar desconto
+--     SET v_valor_com_acrescimo_taxa = v_valor_base_total + v_acrescimo + v_taxa_extra;
 
-    -- 6. Regra: Desconto de 10% se passar de R$ 500,00
-    IF v_valor_com_acrescimo_taxa > 500.00 THEN
-        SET v_desconto = v_valor_com_acrescimo_taxa * 0.10;
-    ELSE
-        SET v_desconto = 0.00;
-    END IF;
+--     -- 6. Regra: Desconto de 10% se passar de R$ 500,00
+--     IF v_valor_com_acrescimo_taxa > 500.00 THEN
+--         SET v_desconto = v_valor_com_acrescimo_taxa * 0.10;
+--     ELSE
+--         SET v_desconto = 0.00;
+--     END IF;
 
-    -- 7. Cálculo Total 
-    SET v_valor_final = v_valor_com_acrescimo_taxa - v_desconto;
+--     -- 7. Cálculo Total 
+--     SET v_valor_final = v_valor_com_acrescimo_taxa - v_desconto;
 
-    -- 8. INSERT na tabela 'entregas'
-    INSERT INTO `entregas` (
-        id_pedido,
-        valor_distancia,
-        valor_peso,
-        acrescimo,
-        desconto,
-        taxa_extra,
-        valor_final,
-        id_status_entrega,
-        id_tipo_entrega
-    ) VALUES (
-        NEW.id_pedido,
-        v_valor_distancia,
-        v_valor_peso,
-        v_acrescimo,
-        v_desconto,
-        v_taxa_extra,
-        v_valor_final,
-        1, -- Define status inicial como 'calculado' (assumindo que ID 1 é 'calculado')
-        NEW.id_tipo_entrega
-    );
+--     -- 8. INSERT na tabela 'entregas'
+--     INSERT INTO `entregas` (
+--         id_pedido,
+--         valor_distancia,
+--         valor_peso,
+--         acrescimo,
+--         desconto,
+--         taxa_extra,
+--         valor_final,
+--         id_status_entrega,
+--         id_tipo_entrega
+--     ) VALUES (
+--         NEW.id_pedido,
+--         v_valor_distancia,
+--         v_valor_peso,
+--         v_acrescimo,
+--         v_desconto,
+--         v_taxa_extra,
+--         v_valor_final,
+--         1, -- Define status inicial como 'calculado' (assumindo que ID 1 é 'calculado')
+--         NEW.id_tipo_entrega
+--     );
 
-END$$
-DELIMITER ;
+-- END$$
+-- DELIMITER ;
