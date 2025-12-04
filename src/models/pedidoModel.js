@@ -2,26 +2,13 @@ const { pool } = require("../config/db");
 
 /**
  * Modelo responsável pelas operações de banco de dados relacionadas a Pedidos.
+ * Contém a lógica de negócios para cálculo de frete e orquestração de transações.
  */
 const pedidoModel = {
   /**
    * Busca todos os pedidos cadastrados.
    * * @async
    * @returns {Promise<Array<Object>>} Lista de pedidos.
-   * @example
-   * // Retorno esperado:
-   * [
-   * {
-   * "id_pedido": 1,
-   * "id_cliente": 10,
-   * "id_tipo_entrega": 2,
-   * "valor_base_distancia": 1.5,
-   * "distancia_km": 100,
-   * "valor_base_carga": 0.5,
-   * "peso_carga": 20,
-   * "data_pedido": "2023-10-27T10:00:00.000Z"
-   * }
-   * ]
    */
   selectAll: async () => {
     const sql = "SELECT * FROM pedidos;";
@@ -34,9 +21,6 @@ const pedidoModel = {
    * * @async
    * @param {number} pId_pedido - ID do pedido.
    * @returns {Promise<Array<Object>>} Registro do pedido.
-   * @example
-   * // Retorno esperado:
-   * [ { "id_pedido": 5, "id_cliente": 2, ... } ]
    */
   selectById: async (pId_pedido) => {
     const sql = "SELECT * FROM pedidos WHERE id_pedido = ?;";
@@ -50,12 +34,6 @@ const pedidoModel = {
    * * @async
    * @param {number} pId_cliente - ID do cliente.
    * @returns {Promise<Array<Object>>} Lista de pedidos do cliente.
-   * @example
-   * // Retorno esperado:
-   * [
-   * { "id_pedido": 1, "valor_base_distancia": 2.0, ... },
-   * { "id_pedido": 2, "valor_base_distancia": 2.0, ... }
-   * ]
    */
   selectByClienteId: async (pId_cliente) => {
     const sql = "SELECT * FROM pedidos WHERE id_cliente = ?;";
@@ -65,32 +43,19 @@ const pedidoModel = {
   },
 
   /**
-   * Cria um novo pedido no banco de dados.
-   * A inserção aciona automaticamente a Trigger 'trg_gerar_entrega_apos_pedido' no banco.
-   * Utiliza transação para garantir que o pedido seja salvo corretamente.
-   * * @async
+   * Cria um novo pedido e gera automaticamente a entrega calculada.
+   * A lógica de negócio (cálculos de frete, taxas e descontos) é executada na aplicação.
+   * Utiliza transação para garantir a consistência entre Pedido e Entrega.
+   *
+   * @async
    * @param {number} pIdCliente - ID do cliente solicitante.
    * @param {number} pValorBaseDistancia - Valor base cobrado por KM.
    * @param {number} pDistancia - Distância total em KM.
    * @param {number} pValorBasePeso - Valor base cobrado por KG.
    * @param {number} pPesoCarga - Peso total da carga em KG.
    * @param {number} pTipoEntrega - ID do tipo de entrega (fk).
-   * @returns {Promise<Object>} Resultado da inserção do pedido.
-   * @throws {Error} Realiza rollback em caso de falha.
-   * @example
-   * // Retorno esperado:
-   * {
-   * "rowsPedido": {
-   * "fieldCount": 0,
-   * "affectedRows": 1,
-   * "insertId": 15,
-   * "serverStatus": 2,
-   * "warningCount": 0,
-   * "message": "",
-   * "protocol41": true,
-   * "changedRows": 0
-   * }
-   * }
+   * @returns {Promise<Object>} Objeto com dados do pedido, entrega e detalhes do cálculo.
+   * @throws {Error} Realiza rollback em caso de falha em qualquer etapa.
    */
   insertPedido: async (
     pIdCliente,
@@ -104,7 +69,46 @@ const pedidoModel = {
     try {
       await connection.beginTransaction();
 
-      // insert 1 - pedido
+      // pegando o tipo de entrega para base de calculo
+      const [rowsTipo] = await connection.query(
+        "SELECT tipo_entrega FROM tipo_entrega WHERE id_tipo_entrega = ?",
+        [pTipoEntrega]
+      );
+
+      let nomeTipoEntrega = "normal";
+      if (rowsTipo.length > 0) {
+        nomeTipoEntrega = rowsTipo[0].tipo_entrega; // 'urgente' ou 'normal'
+      }
+
+      // parse para number e fazendo calculos
+      const valorDistancia = Number(pDistancia) * Number(pValorBaseDistancia);
+      const valorPeso = Number(pPesoCarga) * Number(pValorBasePeso);
+      const valorBaseTotal = valorDistancia + valorPeso;
+
+      // add de 20% se for urgente
+      let acrescimo = 0.0;
+      if (nomeTipoEntrega === "urgente") {
+        acrescimo = valorBaseTotal * 0.2;
+      }
+
+      // taxa extra se pesar mais de 50kg
+      let taxaExtra = 0.0;
+      if (Number(pPesoCarga) > 50) {
+        taxaExtra = 15.0;
+      }
+
+      // fazendo subtotal para validar desconto
+      const subtotal = valorBaseTotal + acrescimo + taxaExtra;
+
+      // desconto de 10% se passar de 500
+      let desconto = 0.0; // se não aplicar não modifica
+      if (subtotal > 500.0) {
+        desconto = subtotal * 0.1;
+      }
+
+      const valorFinal = subtotal - desconto;
+
+      // insert
       const sqlPedido =
         "INSERT INTO pedidos (id_cliente, valor_base_distancia, distancia_km, valor_base_carga, peso_carga, id_tipo_entrega) VALUES (?, ?, ?, ?, ?, ?);";
       const valuesPedido = [
@@ -115,11 +119,46 @@ const pedidoModel = {
         pPesoCarga,
         pTipoEntrega,
       ];
-      const [rowsPedido] = await connection.query(sqlPedido, valuesPedido);
+      const [resultPedido] = await connection.query(sqlPedido, valuesPedido);
+      const novoIdPedido = resultPedido.insertId; // pegando para dar insert na tabela entrega
 
+      const idStatusCalculado = 1; // ID 1 é 'calculado' na tabela status_entrega
+
+      const sqlEntrega = `
+        INSERT INTO entregas 
+        (id_pedido, valor_distancia, valor_peso, acrescimo, desconto, taxa_extra, valor_final, id_status_entrega, id_tipo_entrega) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const valuesEntrega = [
+        novoIdPedido,
+        valorDistancia,
+        valorPeso,
+        acrescimo,
+        desconto,
+        taxaExtra,
+        valorFinal,
+        idStatusCalculado,
+        pTipoEntrega,
+      ];
+
+      const [resultEntrega] = await connection.query(sqlEntrega, valuesEntrega);
+
+      // deu certo, commita
       await connection.commit();
-      return { rowsPedido };
+
+      return {
+        mensagem: "Pedido e Entrega processados com sucesso",
+        id_pedido: novoIdPedido,
+        id_entrega: resultEntrega.insertId,
+        detalhes_calculo: {
+          valor_base_total: valorBaseTotal,
+          acrescimo,
+          taxa_extra: taxaExtra,
+          desconto,
+          valor_final: valorFinal,
+        },
+      };
     } catch (error) {
+      // se der erro no cálculo ou no insert, desfaz tudo (Pedido não será criado sem entrega)
       await connection.rollback();
       throw error;
     } finally {
