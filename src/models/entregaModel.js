@@ -31,6 +31,30 @@ const entregaModel = {
     const [rows] = await pool.query(sql);
     return rows;
   },
+  /**
+   * Atualiza o status de uma entrega específica.
+   * Útil para mover de 'calculado' -> 'em transito' -> 'entregue'.
+   * * @async
+   * @param {number} idEntrega - O ID da entrega a ser atualizada.
+   * @param {number} idNovoStatus - O ID do novo status (ex: 2 para 'em transito').
+   * @returns {Promise<Object>} Resultado da operação (affectedRows).
+   */
+  updateStatus: async (idEntrega, idNovoStatus) => {
+    const connection = await pool.getConnection();
+    try {
+      // Query de UPDATE simples
+      const sql =
+        "UPDATE entregas SET id_status_entrega = ? WHERE id_entrega = ?";
+      const values = [idNovoStatus, idEntrega];
+
+      const [result] = await connection.query(sql, values);
+      return result;
+    } catch (error) {
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
 
   /**
    * Remove uma entrega do banco de dados pelo ID.
