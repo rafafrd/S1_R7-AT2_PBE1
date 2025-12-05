@@ -1,6 +1,25 @@
 const { entregaModel } = require("../models/entregaModel");
 
 const entregaController = {
+  /**
+   * Busca e retorna todas os entregas cadastradas.
+   * Rota GET /entregas
+   * @async
+   * @function selecionaTodos
+   * @param {Request} req Objeto da requisição HTTP (não utiliza body ou params).
+   * @param {Response} res Objeto da resposta HTTP.
+   * @returns {Promise<Response>} Retorna um JSON com a lista de clientes (200) ou uma mensagem de erro (500).
+   * @example
+   * // Requisição: GET /entregas
+   * // Resposta 200 (Sucesso):
+   * // {
+   * //   "data": [
+   * //     { "id_entrega": 1, "id_pedido": 1, ... },
+   * //   ]
+   * // }
+   * // Resposta 200 (Sem resultados):
+   * // { "message": "A consulta não retornou resultados" }
+   */
   selecionaTodos: async (req, res) => {
     try {
       const resultado = await entregaModel.selectAllEntrega();
