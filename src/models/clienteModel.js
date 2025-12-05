@@ -162,6 +162,65 @@ const clienteModel = {
     const [rows] = await pool.query(sql, values);
     return rows;
   },
+  /**
+   * Atualiza os dados de um cliente existente (Cliente, Telefone e Endereço).
+   * * @async
+   * @param {number} id_cliente - ID do cliente a ser atualizado.
+   * @param {string} nome - Novo nome.
+   * @param {string} cpf - Novo CPF.
+   * @param {string} email - Novo Email.
+   * @param {string} telefone - Novo Telefone.
+   * @param {Object} dadosEndereco - Dados do ViaCEP (logradouro, bairro, etc).
+   * @param {number} numero - Novo número do endereço.
+   * @param {string} cep - Novo CEP.
+   */
+  updateCliente: async (
+    id_cliente,
+    nome,
+    cpf,
+    email,
+    telefone,
+    dadosEndereco,
+    numero,
+    cep
+  ) => {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const sqlCliente =
+        "UPDATE clientes SET nome = ?, cpf = ?, email = ? WHERE id_cliente = ?";
+      await connection.query(sqlCliente, [nome, cpf, email, id_cliente]);
+
+      const sqlTelefone =
+        "UPDATE telefones SET telefone = ? WHERE id_cliente = ?";
+      await connection.query(sqlTelefone, [telefone, id_cliente]);
+
+      const sqlEndereco = `
+        UPDATE enderecos 
+        SET logradouro = ?, numero = ?, bairro = ?, complemento = ?, cidade = ?, estado = ?, cep = ?
+        WHERE id_cliente = ?`;
+      const valuesEndereco = [
+        dadosEndereco.logradouro,
+        numero,
+        dadosEndereco.bairro,
+        dadosEndereco.complemento,
+        dadosEndereco.localidade,
+        dadosEndereco.estado,
+        cep,
+        id_cliente,
+      ];
+      await connection.query(sqlEndereco, valuesEndereco);
+
+      await connection.commit();
+      return { id_cliente, message: "Dados atualizados com sucesso." };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
 
   /**
    * Exclui um cliente do banco de dados.
@@ -182,17 +241,27 @@ const clienteModel = {
       // tabela enderecos
       const sqlEnderecos = "DELETE FROM enderecos WHERE id_cliente = ?;";
       const valuesEnderecos = [pId_cliente];
-      const [rowsEnderecos] = await connection.query(sqlEnderecos, valuesEnderecos);
+      const [rowsEnderecos] = await connection.query(
+        sqlEnderecos,
+        valuesEnderecos
+      );
 
       // tabela telefones
       const sqlTelefones = "DELETE FROM telefones WHERE id_cliente = ?;";
       const valuesTelefones = [pId_cliente];
-      const [rowsTelefones] = await connection.query(sqlTelefones, valuesTelefones);
+      const [rowsTelefones] = await connection.query(
+        sqlTelefones,
+        valuesTelefones
+      );
 
       // tabela entregas
-      const sqlEntregas = "DELETE FROM entregas WHERE id_pedido IN (SELECT id_pedido FROM pedidos WHERE id_cliente = ?);";
+      const sqlEntregas =
+        "DELETE FROM entregas WHERE id_pedido IN (SELECT id_pedido FROM pedidos WHERE id_cliente = ?);";
       const valuesEntregas = [pId_cliente];
-      const [rowsEntregas] = await connection.query(sqlEntregas, valuesEntregas);
+      const [rowsEntregas] = await connection.query(
+        sqlEntregas,
+        valuesEntregas
+      );
 
       // tabelas pedidos
       const sqlPedidos = "DELETE FROM pedidos WHERE id_cliente = ?;";
@@ -202,10 +271,19 @@ const clienteModel = {
       // tabelas clientes
       const sqlClientes = "DELETE FROM clientes WHERE id_cliente = ?;";
       const valuesClientes = [pId_cliente];
-      const [rowsClientes] = await connection.query(sqlClientes, valuesClientes);
+      const [rowsClientes] = await connection.query(
+        sqlClientes,
+        valuesClientes
+      );
 
       await connection.commit();
-      return { rowsClientes, rowsTelefones, rowsEnderecos, rowsEntregas, rowsPedidos};
+      return {
+        rowsClientes,
+        rowsTelefones,
+        rowsEnderecos,
+        rowsEntregas,
+        rowsPedidos,
+      };
     } catch (error) {
       await connection.rollback();
       throw error;

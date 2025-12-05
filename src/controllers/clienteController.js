@@ -166,12 +166,62 @@ const clienteController = {
       }
     } catch (error) {
       console.error(`Erro ao executar: ${error}`);
+      res.status(500).json({
+        message: "Ocorreu um erro no servidor",
+        errorMessage: error.message,
+      });
+    }
+  },
+  /**
+   * Atualiza os dados de um cliente.
+   * Valida se CPF, Email ou Telefone já pertencem a outro usuário.
+   * Rota PUT /clientes/:id_cliente
+   */
+  updateCliente: async (req, res) => {
+    try {
+      const id_cliente = Number(req.params.id_cliente);
+      const { nome, cpf, email, telefone, cep, numero } = req.body;
+
+      // validacao
+      if (isNaN(id_cliente) || id_cliente <= 0) {
+        return res.status(400).json({ message: "ID do cliente inválido." });
+      }
+      if (!nome || !cpf || !email || !telefone || !cep || !numero) {
+        return res
+          .status(400)
+          .json({ message: "Todos os campos são obrigatórios." });
+      }
+
+      let dadosEndereco;
+      try {
+        dadosEndereco = await consultarCep(cep);
+      } catch (cepError) {
+        return res
+          .status(400)
+          .json({ message: "CEP inválido ou não encontrado." });
+      }
+
+      //  atualiza
+      const resultado = await clienteModel.updateCliente(
+        id_cliente,
+        nome,
+        cpf,
+        email,
+        telefone,
+        dadosEndereco,
+        numero,
+        cep
+      );
+
+      res.status(200).json({
+        message: "Cliente atualizado com sucesso",
+        data: resultado,
+      });
+    } catch (error) {
+      console.error(`Erro ao atualizar: ${error}`);
       res
         .status(500)
-        .json({
-          message: "Ocorreu um erro no servidor",
-          errorMessage: error.message,
-        });
+        .json({ message: "Ocorreu um erro no servidor", error: error.message });
     }
   },
 };
