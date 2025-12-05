@@ -1,19 +1,20 @@
+// import do viacep
 const axios = require('axios');
 
 // valida o cep
-function validarCep(cep) {
-    if (!cep || typeof cep !== 'string') return false;
-    const somenteDigitos = cep.replace(/\D/g, '');
+function validarCep(pCep) {
+    if (!pCep || typeof pCep !== 'string') return false;
+    const somenteDigitos = pCep.replace(/\D/g, '');
     return /^\d{8}$/.test(somenteDigitos);
 }
 
 // normalizacao do cep
-function normalizarCep(cep) {
-    return cep.replace(/\D/g, '');
+function normalizarCep(pCep) {
+    return pCep.replace(/\D/g, '');
 }
 
-async function consultarCep(cep) {
-    const cepNormalizado = normalizarCep(String(cep || ''));
+async function consultarCep(pCep) {
+    const cepNormalizado = normalizarCep(String(pCep || ''));
 
     // valida o cep antes de chamar
     if (!validarCep(cepNormalizado)) {
@@ -43,18 +44,21 @@ async function consultarCep(cep) {
             throw erro;
         }
 
-        // erros http
+        // validacao dos status http
         if (error.response) {
             const status = error.response.status;
             let mensagem = 'Erro ao consultar ViaCEP.';
             let code = 'HTTP_ERROR';
 
+            // validacao status 400
             if (status === 400) {
                 mensagem = 'Requisição inválida ao ViaCEP (HTTP 400).';
                 code = 'HTTP_400';
+                // validacao status 404
             } else if (status === 404) {
                 mensagem = 'Endpoint do ViaCEP não encontrado (HTTP 404).';
                 code = 'HTTP_404';
+                // validacao status 500 pra cima
             } else if (status >= 500) {
                 mensagem = 'Serviço ViaCEP indisponível no momento (HTTP 5xx).';
                 code = 'HTTP_5XX';
@@ -66,14 +70,14 @@ async function consultarCep(cep) {
             throw erro;
         }
 
-        // erros de rede
+        // erros de comunicação com o viacep
         if (error.request && !error.response) {
             const erro = new Error('Falha de rede ao acessar ViaCEP. Verifique sua conexão.');
             erro.code = 'NETWORK_ERROR';
             throw erro;
         }
 
-        // cep nao encontrado
+        // erro de cep nao encontrado ou invalido
         if (error.code && ['CEP_INVALIDO', 'CEP_NAO_ENCONTRADO'].includes(error.code)) {
             throw error; 
         }
@@ -86,4 +90,4 @@ async function consultarCep(cep) {
     }
 }
 
-module.exports = { consultarCep, validarCep, normalizarCep };
+module.exports = { consultarCep };
