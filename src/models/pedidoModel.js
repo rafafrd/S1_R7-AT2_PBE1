@@ -144,7 +144,7 @@ const pedidoModel = {
 
       // deu certo, commita
       await connection.commit();
-      return { resultPedido, resultEntrega};
+      return { resultPedido, resultEntrega };
     } catch (error) {
       // se der erro no cálculo ou no insert, desfaz tudo (Pedido não será criado sem entrega)
       await connection.rollback();
@@ -154,7 +154,7 @@ const pedidoModel = {
     }
   },
 
-  deletaPedido:async (pId_pedido) => {
+  deletaPedido: async (pId_pedido) => {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
@@ -162,15 +162,150 @@ const pedidoModel = {
       // tabela entregas
       const sqlEntregas = "DELETE FROM entregas WHERE id_pedido = ?;";
       const valuesEntregas = [pId_pedido];
-      const [rowsEntregas] = await connection.query(sqlEntregas, valuesEntregas);
+      const [rowsEntregas] = await connection.query(
+        sqlEntregas,
+        valuesEntregas
+      );
 
       // tabela pedidos
       const sqlPedidos = "DELETE FROM pedidos WHERE id_pedido = ?;";
       const valuesPedidos = [pId_pedido];
-      const [rowsPedidos] = await connection.query(sqlPedidos, valuesPedidos); 
+      const [rowsPedidos] = await connection.query(sqlPedidos, valuesPedidos);
 
       await connection.commit();
-      return { rowsEntregas, rowsPedidos};
+      return { rowsEntregas, rowsPedidos };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+  /**
+   * Atualiza os dados de um pedido e recalcula automaticamente os valores da entrega.
+   * * @async
+   * @param {number} pIdPedido - ID do pedido a ser atualizado.
+   * @param {number} pValorBaseDistancia - Novo valor base por KM.
+   * @param {number} pDistancia - Nova distância em KM.
+   * @param {number} pValorBasePeso - Novo valor base por KG.
+   * @param {number} pPesoCarga - Novo peso da carga.
+   * @param {number} pTipoEntrega - Novo tipo de entrega.
+   * @returns {Promise<Object>} Resultado da atualização.
+   */
+  updatePedido: async (
+    pIdPedido,
+    pValorBaseDistancia,
+    pDistancia,
+    pValorBasePeso,
+    pPesoCarga,
+    pTipoEntrega
+  ) => {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      // valida se existe
+      const [pedidoExistente] = await connection.query(
+        "SELECT id_pedido FROM pedidos WHERE id_pedido = ?",
+        [pIdPedido]
+      );
+      if (pedidoExistente.length === 0) {
+        throw new Error("Pedido não encontrado.");
+      }
+
+      // pega novamente o tipo de entrega caso tenha mudado
+      const [rowsTipo] = await connection.query(
+        "SELECT tipo_entrega FROM tipo_entrega WHERE id_tipo_entrega = ?",
+        [pTipoEntrega]
+      );
+
+      let nomeTipoEntrega = "normal";
+      if (rowsTipo.length > 0) {
+        nomeTipoEntrega = rowsTipo[0].tipo_entrega;
+      }
+
+      // refaz calculos
+      const valorDistancia = Number(pDistancia) * Number(pValorBaseDistancia);
+      const valorPeso = Number(pPesoCarga) * Number(pValorBasePeso);
+      const valorBaseTotal = valorDistancia + valorPeso;
+
+      let acrescimo = 0.0;
+      if (nomeTipoEntrega === "urgente") {
+        acrescimo = valorBaseTotal * 0.2;
+      }
+
+      let taxaExtra = 0.0;
+      if (Number(pPesoCarga) > 50) {
+        taxaExtra = 15.0;
+      }
+
+      const subtotal = valorBaseTotal + acrescimo + taxaExtra;
+
+      let desconto = 0.0;
+      if (subtotal > 500.0) {
+        desconto = subtotal * 0.1;
+      }
+
+      const valorFinal = subtotal - desconto;
+
+      // update
+      const sqlUpdatePedido = `
+        UPDATE pedidos 
+        SET valor_base_distancia = ?, 
+            distancia_km = ?, 
+            valor_base_carga = ?, 
+            peso_carga = ?, 
+            id_tipo_entrega = ?
+        WHERE id_pedido = ?`;
+
+      const valuesPedido = [
+        pValorBaseDistancia,
+        pDistancia,
+        pValorBasePeso,
+        pPesoCarga,
+        pTipoEntrega,
+        pIdPedido,
+      ];
+
+      await connection.query(sqlUpdatePedido, valuesPedido);
+
+      // sync na tabela entrega
+      const sqlUpdateEntrega = `
+        UPDATE entregas 
+        SET valor_distancia = ?, 
+            valor_peso = ?, 
+            acrescimo = ?, 
+            desconto = ?, 
+            taxa_extra = ?, 
+            valor_final = ?, 
+            id_tipo_entrega = ? 
+        WHERE id_pedido = ?`;
+
+      const valuesEntrega = [
+        valorDistancia,
+        valorPeso,
+        acrescimo,
+        desconto,
+        taxaExtra,
+        valorFinal,
+        pTipoEntrega,
+        pIdPedido,
+      ];
+
+      await connection.query(sqlUpdateEntrega, valuesEntrega);
+
+      await connection.commit();
+
+      return {
+        message: "Pedido e Entrega atualizados com sucesso",
+        id_pedido: pIdPedido,
+        novos_calculos: {
+          valor_final: valorFinal,
+          desconto: desconto,
+          acrescimo: acrescimo,
+          taxa_extra: taxaExtra,
+        },
+      };
     } catch (error) {
       await connection.rollback();
       throw error;

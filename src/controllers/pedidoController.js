@@ -218,6 +218,97 @@ const pedidoController = {
       });
     }
   },
+
+  /**
+   * Atualiza os dados de um pedido existente e recalcula o frete automaticamente.
+   * Valida os dados numéricos antes de enviar para o Model.
+   *
+   * @async
+   * @function atualizarPedido
+   * @param {object} req - Objeto Request (body e params).
+   * @param {object} res - Objeto Response.
+   * @returns {Promise<object>} JSON com o resultado da atualização e novos cálculos.
+   *
+   * @example
+   * // PUT /pedidos/10
+   * // Body:
+   * // {
+   * //   "valor_base_distancia": 3.00,
+   * //   "distancia_km": 120,
+   * //   "valor_base_carga": 1.50,
+   * //   "peso_carga": 70,
+   * //   "id_tipo_entrega": 1
+   * // }
+   */
+  atualizarPedido: async (req, res) => {
+    try {
+      const id_pedido = Number(req.params.id_pedido);
+      const {
+        valor_base_distancia,
+        distancia_km,
+        valor_base_carga,
+        peso_carga,
+        id_tipo_entrega,
+      } = req.body;
+
+      // Validação: ID do pedido
+      if (isNaN(id_pedido) || id_pedido <= 0) {
+        return res.status(400).json({
+          message: "ID do pedido inválido ou não fornecido na URL.",
+        });
+      }
+
+      // Validação: Campos do corpo da requisição
+      if (
+        !valor_base_distancia ||
+        isNaN(valor_base_distancia) ||
+        valor_base_distancia <= 0 ||
+        !distancia_km ||
+        isNaN(distancia_km) ||
+        distancia_km <= 0 ||
+        !valor_base_carga ||
+        isNaN(valor_base_carga) ||
+        valor_base_carga <= 0 ||
+        !peso_carga ||
+        isNaN(peso_carga) ||
+        peso_carga <= 0 ||
+        !id_tipo_entrega ||
+        isNaN(id_tipo_entrega)
+      ) {
+        return res.status(400).json({
+          message:
+            "Dados incompletos ou inválidos para atualização. Verifique os valores numéricos.",
+        });
+      }
+
+      // Chama a model para atualizar pedido e recalcular entrega
+      const resultado = await pedidoModel.updatePedido(
+        id_pedido,
+        valor_base_distancia,
+        distancia_km,
+        valor_base_carga,
+        peso_carga,
+        id_tipo_entrega
+      );
+
+      res.status(200).json({
+        message: "Pedido atualizado com sucesso",
+        data: resultado,
+      });
+    } catch (error) {
+      console.error(`Erro ao executar: ${error}`);
+
+      // Tratamento específico para quando o ID não existe
+      if (error.message === "Pedido não encontrado.") {
+        return res.status(404).json({ message: error.message });
+      }
+
+      res.status(500).json({
+        message: "Ocorreu um erro no servidor",
+        errorMessage: error.message,
+      });
+    }
+  },
 };
 
 module.exports = { pedidoController };
