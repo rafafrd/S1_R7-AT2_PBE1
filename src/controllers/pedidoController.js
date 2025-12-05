@@ -212,12 +212,10 @@ const pedidoController = {
       }
     } catch (error) {
       console.error(`Erro ao executar: ${error}`);
-      res
-        .status(500)
-        .json({
-          message: "Ocorreu um erro no servidor",
-          errorMessage: error.message,
-        });
+      res.status(500).json({
+        message: "Ocorreu um erro no servidor",
+        errorMessage: error.message,
+      });
     }
   },
 };
