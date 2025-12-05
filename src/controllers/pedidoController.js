@@ -53,6 +53,7 @@ const pedidoController = {
    * // Resposta 200:
    * // { "data": [ { "id_pedido": 50, ... } ] }
    */
+  // usado em funçoes
   VerPorId: async (req, res) => {
     try {
       const { id } = req.params;
@@ -188,7 +189,25 @@ const pedidoController = {
       });
     }
   },
-
+  /**
+   * Remove um pedido do banco de dados pelo ID.
+   * Rota DELETE /pedidos/:id_pedido
+   *
+   * @async
+   * @function deletePedido
+   * @param {object} req - Objeto Request contendo id_pedido nos params.
+   * @param {object} res - Objeto Response.
+   * @returns {Promise<object>} JSON com a confirmação da exclusão ou mensagem de erro.
+   *
+   * @example
+   * // DELETE /pedidos/10
+   *
+   * // Resposta 200 (Sucesso):
+   * // { "message": "Pedido excluído com sucesso" }
+   *
+   * // Resposta 404 (Não Encontrado):
+   * // { "message": "Pedido Não localizado" }
+   */
   deletePedido: async (req, res) => {
     try {
       const id_pedido = Number(req.params.id_pedido);
