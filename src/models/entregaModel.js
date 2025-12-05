@@ -28,7 +28,7 @@ const entregaModel = {
    */
   selectAllEntrega: async () => {
     const sql =
-      "SELECT e.id_entrega, e.id_pedido, e.valor_distancia, e.valor_peso, e.acrescimo, e.desconto, e.taxa_extra, e.valor_final, t.tipo_entrega, s.status_entrega FROM entregas e JOIN tipo_entrega t  ON e.id_status_entrega = t.id_tipo_entrega JOIN status_entrega s  ON e.id_status_entrega = s.id_status_entrega;";
+      "SELECT e.id_entrega, e.id_pedido, e.valor_distancia, e.valor_peso, e.acrescimo, e.desconto, e.taxa_extra, e.valor_final, t.tipo_entrega, s.status_entrega FROM entregas e JOIN tipo_entrega t  ON e.id_tipo_entrega = t.id_tipo_entrega JOIN status_entrega s  ON e.id_status_entrega = s.id_status_entrega ORDER BY id_entrega ASC;";
     const [rows] = await pool.query(sql);
     return rows;
   },
