@@ -198,12 +198,16 @@ const pedidoController = {
           .status(400)
           .json({ message: "ID do pedido inválido ou não fornecido." });
       }
+
       const pedidoSelecionado = await pedidoModel.selectById(id_pedido);
+
       if (pedidoSelecionado.length === 0) {
         return res.status(404).json({ message: "Pedido Não localizado" });
       }
-      const resultDelete = await pedidoController.deletePedido(id_pedido);
-      if (resultDelete.affectedRows === 1) {
+
+      const resultDelete = await pedidoModel.deletaPedido(id_pedido);
+
+      if (resultDelete.affectedRows !== 0) {
         return res.status(200).json({ message: "Pedido excluído com sucesso" });
       } else {
         res
