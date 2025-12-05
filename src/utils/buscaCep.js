@@ -29,7 +29,7 @@ async function consultarCep(cep) {
 
         // responde com { erro: true } quando o cep nao existe
         if (data && data.erro) {
-            const err = new Error('CEP não encontrado no ViaCEP. Verifique se o CEP está correto.');
+            const erro = new Error('CEP não encontrado no ViaCEP. Verifique se o CEP está correto.');
             erro.code = 'CEP_NAO_ENCONTRADO';
             throw erro;
         }
