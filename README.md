@@ -77,6 +77,7 @@ O projeto segue o padrão **MVC**, garantindo separação clara de responsabilid
 │ ├── 📁 utils
 │ │ └── 📄 buscaCep.js
 │ └── 📁 views
+├── 🔐 .env
 ├── ⚙️ .gitignore
 ├── ⚙️ package.json
 └── 📄 server.js
