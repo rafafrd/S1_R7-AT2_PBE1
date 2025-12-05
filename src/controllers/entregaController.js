@@ -47,15 +47,15 @@ const entregaController = {
    */
   atualizarStatus: async (req, res) => {
     try {
-      const { id } = req.params; // ID da entrega vindo da URLs
+      const { id_entrega } = req.params; // ID da entrega vindo da URLs
       const { id_status } = req.body; // Novo status vindo do JSON
 
       // Validação básica
-      if (!id || isNaN(id) || !id_status || isNaN(id_status)) {
+      if (!id_entrega || isNaN(id_entrega) || !id_status || isNaN(id_status)) {
         return res.status(400).json({ message: "IDs inválidos fornecidos." });
       }
 
-      const resultado = await entregaModel.updateStatus(id, id_status);
+      const resultado = await entregaModel.updateStatus(id_entrega, id_status);
 
       // affectedRows verifica se alguma linha foi alterada no banco
       if (resultado.affectedRows === 0) {
