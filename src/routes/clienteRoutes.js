@@ -3,6 +3,7 @@ const clientesRoutes = express.Router();
 const { clienteController } = require("../controllers/clienteController");
 // select
 clientesRoutes.get("/clientes", clienteController.selecionaTodos);
+clientesRoutes.get("/clientes/:id_cliente", clienteController.selecionaID);
 // alter
 clientesRoutes.post("/clientes", clienteController.insertDadosCliente);
 clientesRoutes.delete("/clientes/:id_cliente", clienteController.deleteCliente);

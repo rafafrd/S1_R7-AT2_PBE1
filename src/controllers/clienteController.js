@@ -36,6 +36,27 @@ const clienteController = {
       res.status(500).json({ message: "Ocorreu um erro no servidor" });
     }
   },
+  selecionaID: async (req, res) => {
+    try {
+      const id_cliente = Number(req.params.id_cliente);
+      // validação ID
+      if (isNaN(id_cliente) || id_cliente <= 0) {
+        return res
+          .status(400)
+          .json({ message: "ID do cliente inválido ou não fornecido." });
+      }
+      const resultado = await clienteModel.selectById(id_cliente);
+      if (resultado.length === 0) {
+        return res
+          .status(200)
+          .json({ message: "A consulta não retornou resultados" });
+      }
+      res.status(200).json({ data: resultado });
+    } catch (error) {
+      console.error(`Erro ao executar: ${error}`);
+      res.status(500).json({ message: "Ocorreu um erro no servidor" });
+    }
+  },
 
   /**
    * Insere um novo cliente junto com seus dados de endereço e telefone.
