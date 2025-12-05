@@ -1,46 +1,50 @@
-# 🚚 Rápido & Seguro Logística - Sistema de Cálculo de Entregas
+# 🚚 Rápido & Seguro Logística — Sistema de Cálculo de Entregas
 
-Este projeto implementa um sistema back-end completo para a Rápido & Seguro Logística, focado no **cadastro de clientes**, **registro de pedidos** e **cálculo automatizado do valor final das entregas**, seguindo regras de negócio específicas.
+Este projeto implementa um sistema **back-end completo** para a Rápido & Seguro Logística, focado no **cadastro de clientes**, **registro de pedidos** e **cálculo automatizado do valor final das entregas**, seguindo regras de negócio específicas.
 
-O sistema foi construído em arquitetura **MVC** (Model-View-Controller) utilizando Node.js, Express e MySQL.
+O sistema foi construído em **arquitetura MVC (Model-View-Controller)** utilizando **Node.js**, **Express** e **MySQL**.
 
------
+---
 
 ## 💡 Tecnologias Utilizadas
 
-  * **Linguagem:** Node.js
-  * **Framework Web:** Express
-  * **Banco de Dados:** MySQL
-  * **Conexão DB:** `mysql2`
-  * **Variáveis de Ambiente:** `dotenv`
-  * **Requisições Externas (ViaCEP):** `axios`
-  * **Documentação Código:** JSDOC
+- **Linguagem:** Node.js  
+- **Framework Web:** Express  
+- **Banco de Dados:** MySQL  
+- **Conexão DB:** mysql2 (com Pool)  
+- **Variáveis de Ambiente:** dotenv  
+- **Requisições Externas (ViaCEP):** axios  
+- **Documentação de Código:** JSDoc  
 
------
+---
 
 ## 🏗️ Arquitetura e Estrutura do Projeto
 
-O projeto segue a arquitetura **Model-View-Controller (MVC)**, com foco na separação de responsabilidades.
+O projeto segue o padrão **MVC**, garantindo separação clara de responsabilidades.
 
 ```
 ├── 📁 docs
-│   └── 📄 script.sql
+│ └── 📄 script.sql
+│ └── 📄 insomnia.yaml
 ├── 📁 src
-│   ├── 📁 config
-│   │   └── 📄 db.js
-│   ├── 📁 controllers
-│   │   ├── 📄 clienteController.js
-│   │   └── 📄 pedidoController.js
-│   ├── 📁 models
-│   │   ├── 📄 clienteModel.js
-│   │   └── 📄 pedidoModel.js
-│   ├── 📁 routes
-│   │   ├── 📄 clienteRoutes.js
-│   │   ├── 📄 pedidoRoutes.js
-│   │   └── 📄 routes.js
-│   ├── 📁 utils
-│   │   └── 📄 buscaCep.js
-│   └── 📁 views
+│ ├── 📁 config
+│ │ └── 📄 db.js
+│ ├── 📁 controllers
+│ │ ├── 📄 clienteController.js
+│ │ ├── 📄 entregaController.js
+│ │ └── 📄 pedidoController.js
+│ ├── 📁 models
+│ │ ├── 📄 clienteModel.js
+│ │ ├── 📄 entregaModel.js
+│ │ └── 📄 pedidoModel.js
+│ ├── 📁 routes
+│ │ ├── 📄 clienteRoutes.js
+│ │ ├── 📄 entregaRoutes.js
+│ │ ├── 📄 pedidoRoutes.js
+│ │ └── 📄 routes.js
+│ ├── 📁 utils
+│ │ └── 📄 buscaCep.js
+│ └── 📁 views
 ├── ⚙️ .gitignore
 ├── ⚙️ package.json
 └── 📄 server.js
@@ -50,35 +54,75 @@ O projeto segue a arquitetura **Model-View-Controller (MVC)**, com foco na separ
 
 ## 🗃️ Modelo de Dados (7 Tabelas)
 
-O banco de dados foi modelado seguindo a **Terceira Forma Normal (3FN)** para evitar redundância e garantir a integridade.
+O banco segue a **3ª Forma Normal (3FN)** para evitar redundâncias e garantir integridade.
+
+**Tabelas principais:**  
+`clientes`, `telefones`, `enderecos`, `pedidos`, `entregas`, `tipo_entrega`, `status_entrega`.
 
 ---
 
 ## 🚀 Endpoints da API
 
-| Funcionalidade | Método | Rota | Descrição |
-| :--- | :--- | :--- | :--- |
-| **Clientes** | `POST` | `/clientes` | Cadastra cliente, telefones e endereços (integrando com ViaCEP). |
-| **Clientes** | `GET` | `/clientes/:id` | Retorna dados do cliente, telefones e endereços. |
-| **Pedidos** | `POST` | `/pedidos` | Registra novo pedido e dispara o **cálculo automático** do frete. |
-| **Pedidos** | `GET` | `/pedidos/:id` | Retorna detalhes do pedido e o resultado do cálculo. |
+### 👤 **Clientes**
 
------
+| Método | Rota            | Descrição |
+|--------|------------------|-----------|
+| POST   | /clientes        | Cadastra cliente, telefones e endereços (ViaCEP automático). |
+| GET    | /clientes        | Lista todos os clientes. |
+| GET    | /clientes/:id    | Retorna dados detalhados do cliente. |
+| DELETE | /clientes/:id    | Remove cliente e dados vinculados. |
+
+---
+
+### 📦 **Pedidos (Com Cálculo Automático)**
+
+| Método | Rota           | Descrição |
+|--------|----------------|-----------|
+| POST   | /pedidos       | Registra pedido e calcula o valor da entrega. |
+| GET    | /pedidos       | Lista pedidos (aceita `?id_cliente=X`). |
+| GET    | /pedidos/:id   | Retorna detalhes do pedido. |
+| PUT    | /pedidos/:id   | Atualiza dados e recalcula o frete. |
+| DELETE | /pedidos/:id   | Remove pedido e entrega associada. |
+
+---
+
+### 🚚 **Entregas**
+
+| Método | Rota                   | Descrição |
+|--------|-------------------------|-----------|
+| GET    | /entregas              | Lista todas as entregas. |
+| PUT    | /entregas/:id/status   | Atualiza o status da entrega. |
+
+---
 
 ## 📐 Regras de Negócio (Cálculo Automático)
 
-A rota `POST /pedidos` executa automaticamente a seguinte lógica:
+A precificação é executada no back-end a cada **POST** ou **PUT** em `/pedidos`.
 
-1.  **Valor Base:** Soma (Distância \* Valor/km) + (Peso \* Valor/kg).
-2.  **Acréscimo Urgente:** +20% sobre o Valor Base se o Tipo de Entrega for "urgente".
-3.  **Valor Final Intermediário:** Valor Base + Acréscimo.
-4.  **Desconto:** -10% se o Valor Final Intermediário for **superior a R$ 500,00**.
-5.  **Taxa Extra:** +R$ 15,00 se o Peso da Carga for **superior a 50 kg**.
-6.  O resultado final é registrado na tabela `Calculos_Entregas`.
+### Fórmulas e Regras:
 
------
+- **Valor Base:**  
+  `(Distância km * Valor/km) + (Peso kg * Valor/kg)`
+
+- **Acréscimo de Urgência:**  
+  +20% se o tipo for **urgente**
+
+- **Taxa Extra de Peso:**  
+  + R$ 15,00 se peso > 50 kg
+
+- **Desconto por valor alto:**  
+  –10% se total > R$ 500,00
+
+- **Persistência:**  
+  Tudo é salvo na tabela `entregas` vinculada ao pedido.
+
+---
 
 ## 📝 Documentação e Testes
 
-  * **Testes:** Todas as rotas podem ser testadas através da coleção **Insomnia** localizada em `docs/insomnia_tests.json`.
-  * **Documentação de Código:** Todas as funções nos **Controllers** e **Models** estão documentadas com **JSDOC**, detalhando parâmetros, retornos e responsabilidades.
+- **Testes:** coleção Insomnia disponível em `docs/`  
+- **JSDoc:** todos os Controllers e Models documentados com tipos, parâmetros e exemplos.
+
+
+
+#### Made with ❤️ by rafafrd and guimunizzz
