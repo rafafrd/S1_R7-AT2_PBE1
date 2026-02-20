@@ -5,15 +5,18 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+    
 jobs:
   sonarqube:
     name: SonarQube
-    runs-on: windows-latest # testando no windows
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+          fetch-depth: 0
+          
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master # <-- Action correta para o SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
