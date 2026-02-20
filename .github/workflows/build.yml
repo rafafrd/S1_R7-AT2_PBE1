@@ -9,15 +9,15 @@ on:
 jobs:
   sonarqube:
     name: SonarQube
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master # <-- Action correta para o SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v6 # <-- Voltamos para a Action unificada e moderna
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_SCANNER_OPTS: -Xmx3072m # aumentando memoria ram para 3gb
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_SCANNER_OPTS: -Xmx4096m # <-- 4GB de memória
