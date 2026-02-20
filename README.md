@@ -4,9 +4,13 @@ Este projeto implementa um sistema **back-end completo** para a Rápido & Seguro
 
 O sistema foi construído em **arquitetura MVC (Model-View-Controller)** utilizando **Node.js**, **Express** e **MySQL**.
 
+
+
 ---
 <div align="center">
   <h2>🚀 Tecnologias & Ferramentas</h2>
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rafafrd_S1_R7-AT2_PBE1&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=rafafrd_S1_R7-AT2_PBE1)
 
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; justify-content: center;">
     <!-- 🗄️ Dados & Banco de Dados -->
